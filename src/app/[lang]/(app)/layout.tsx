@@ -2,18 +2,23 @@ import { Suspense } from "react";
 import { MobileNav } from "@/components/app-shell/mobile-nav";
 import { NavLinks } from "@/components/app-shell/nav-links";
 import { UserMenu } from "@/components/app-shell/user-menu";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Skeleton } from "@/components/ui/skeleton";
+import { localePath } from "@/i18n/config";
+import { getI18n } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
 
 // The shell (sidebar, header) is static and prerenders instantly. Only the parts
 // that read the session stream in behind <Suspense>.
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const { locale } = await getI18n();
+
   return (
     <div className="flex min-h-svh">
       <aside className="bg-muted/30 sticky top-0 hidden h-svh w-60 shrink-0 flex-col gap-6 border-r p-4 md:flex">
-        <Logo href="/dashboard" className="px-2" />
+        <Logo href={localePath(locale, "/dashboard")} className="px-2" />
         <NavLinks />
       </aside>
 
@@ -21,6 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="bg-background/95 sticky top-0 z-10 flex h-14 items-center gap-2 border-b px-4 backdrop-blur md:px-8">
           <MobileNav />
           <div className="flex-1" />
+          <LanguageSwitcher />
           <ThemeToggle />
           <Suspense fallback={<Skeleton className="size-8 rounded-full" />}>
             <CurrentUserMenu />

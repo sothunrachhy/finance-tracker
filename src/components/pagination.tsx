@@ -1,10 +1,11 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { getI18n } from "@/i18n/server";
 import { cn } from "@/lib/utils";
 
 /** Prev / next links that keep every other search param. */
-export function Pagination({
+export async function Pagination({
   page,
   pageCount,
   basePath,
@@ -16,6 +17,7 @@ export function Pagination({
   searchParams: Record<string, string | string[] | undefined>;
 }) {
   if (pageCount <= 1) return null;
+  const { t } = await getI18n();
 
   function href(target: number) {
     const params = new URLSearchParams();
@@ -31,9 +33,9 @@ export function Pagination({
   const disabledClass = cn(linkClass, "pointer-events-none opacity-50");
 
   return (
-    <nav className="flex items-center justify-between gap-2" aria-label="Pagination">
+    <nav className="flex items-center justify-between gap-2" aria-label={t("pagination.label")}>
       <p className="text-muted-foreground text-sm">
-        Page {page} of {pageCount}
+        {t("pagination.page", { page, count: pageCount })}
       </p>
       <div className="flex gap-2">
         <Link
@@ -43,7 +45,7 @@ export function Pagination({
           tabIndex={page <= 1 ? -1 : undefined}
         >
           <ChevronLeft aria-hidden />
-          Previous
+          {t("pagination.previous")}
         </Link>
         <Link
           href={href(page + 1)}
@@ -51,7 +53,7 @@ export function Pagination({
           aria-disabled={page >= pageCount}
           tabIndex={page >= pageCount ? -1 : undefined}
         >
-          Next
+          {t("pagination.next")}
           <ChevronRight aria-hidden />
         </Link>
       </div>

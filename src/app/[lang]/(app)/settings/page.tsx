@@ -8,15 +8,21 @@ import { ProfileForm } from "@/components/settings/profile-form";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getI18n } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
-import { DEMO_EMAIL } from "@/server/demo";
+import { isDemoEmail } from "@/server/demo";
 
-export const metadata: Metadata = { title: "Settings" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("settings.title") };
+}
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const { t } = await getI18n();
+
   return (
     <>
-      <PageHeader title="Settings" description="Manage your profile, password and data." />
+      <PageHeader title={t("settings.title")} description={t("settings.description")} />
       <Suspense fallback={<Skeleton className="h-96 max-w-3xl" />}>
         <Settings />
       </Suspense>
@@ -26,22 +32,22 @@ export default function SettingsPage() {
 
 async function Settings() {
   const user = await getCurrentUser();
-  const isDemo = user.email === DEMO_EMAIL;
+  const { t } = await getI18n();
+  const isDemo = isDemoEmail(user.email);
 
   return (
     <div className="grid max-w-3xl gap-6">
       {isDemo && (
         <p className="bg-muted flex items-start gap-2 rounded-lg px-3 py-2 text-sm">
           <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-          You&apos;re in the shared demo account, so password changes and account deletion are
-          turned off. Create your own account to try them.
+          {t("settings.demoNotice")}
         </p>
       )}
 
       <Card>
         <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>Signed in as {user.email}</CardDescription>
+          <CardTitle>{t("settings.profile")}</CardTitle>
+          <CardDescription>{t("settings.signedInAs", { email: user.email })}</CardDescription>
         </CardHeader>
         <CardContent>
           <ProfileForm name={user.name} currency={user.currency} />
@@ -50,8 +56,8 @@ async function Settings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Password</CardTitle>
-          <CardDescription>Use at least 8 characters.</CardDescription>
+          <CardTitle>{t("settings.password")}</CardTitle>
+          <CardDescription>{t("settings.passwordDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <PasswordForm disabled={isDemo} />
@@ -60,26 +66,22 @@ async function Settings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Your data</CardTitle>
-          <CardDescription>
-            Download every transaction as a CSV file for Excel or Sheets.
-          </CardDescription>
+          <CardTitle>{t("settings.data")}</CardTitle>
+          <CardDescription>{t("settings.dataDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           {/* A plain link: the route handler responds with a file download */}
           <a href="/api/export" className={buttonVariants({ variant: "outline" })} download>
             <Download aria-hidden />
-            Export all transactions
+            {t("settings.exportAll")}
           </a>
         </CardContent>
       </Card>
 
       <Card className="ring-destructive/30">
         <CardHeader>
-          <CardTitle>Delete account</CardTitle>
-          <CardDescription>
-            Permanently remove your account and all of its data. This can&apos;t be undone.
-          </CardDescription>
+          <CardTitle>{t("settings.deleteAccount")}</CardTitle>
+          <CardDescription>{t("settings.deleteAccountDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <DeleteAccountButton disabled={isDemo} />

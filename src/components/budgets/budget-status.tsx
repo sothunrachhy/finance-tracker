@@ -1,35 +1,24 @@
+"use client";
+
 import { CircleAlert, CircleCheck, TriangleAlert } from "lucide-react";
+import { useI18n } from "@/i18n/client";
 import { type BudgetStatus, formatPercent } from "@/lib/stats";
 import { cn } from "@/lib/utils";
 
 const STATUS = {
-  ok: {
-    label: "On track",
-    icon: CircleCheck,
-    iconClass: "text-status-good",
-    fill: "bg-status-good",
-  },
-  warning: {
-    label: "Near limit",
-    icon: TriangleAlert,
-    iconClass: "text-status-warning",
-    fill: "bg-status-warning",
-  },
-  over: {
-    label: "Over budget",
-    icon: CircleAlert,
-    iconClass: "text-status-critical",
-    fill: "bg-status-critical",
-  },
+  ok: { icon: CircleCheck, iconClass: "text-status-good", fill: "bg-status-good" },
+  warning: { icon: TriangleAlert, iconClass: "text-status-warning", fill: "bg-status-warning" },
+  over: { icon: CircleAlert, iconClass: "text-status-critical", fill: "bg-status-critical" },
 } as const;
 
 /** Icon + text label: the status never relies on color alone. */
 export function BudgetStatusLabel({ status }: { status: BudgetStatus }) {
-  const { label, icon: Icon, iconClass } = STATUS[status];
+  const { t } = useI18n();
+  const { icon: Icon, iconClass } = STATUS[status];
   return (
     <span className="inline-flex items-center gap-1 text-xs font-medium">
       <Icon className={cn("size-3.5", iconClass)} aria-hidden />
-      {label}
+      {t(`budgets.status.${status}`)}
     </span>
   );
 }
@@ -46,6 +35,7 @@ export function BudgetMeter({
   status: BudgetStatus;
   label: string;
 }) {
+  const { t } = useI18n();
   const ratio = limit > 0 ? spent / limit : 0;
   return (
     <div
@@ -54,7 +44,7 @@ export function BudgetMeter({
       aria-valuemin={0}
       aria-valuemax={limit}
       aria-valuenow={spent}
-      aria-valuetext={`${formatPercent(ratio)} of budget used`}
+      aria-valuetext={t("budgets.meterValue", { percent: formatPercent(ratio) })}
       className="bg-muted h-2 w-full overflow-hidden rounded-full"
     >
       <div

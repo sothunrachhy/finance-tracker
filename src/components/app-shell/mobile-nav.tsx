@@ -5,21 +5,23 @@ import { useState } from "react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useI18n } from "@/i18n/client";
 import { NavLinks } from "./nav-links";
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
+  const { t, path } = useI18n();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<Button variant="ghost" size="icon" className="md:hidden" />}>
         <Menu />
-        <span className="sr-only">Open menu</span>
+        <span className="sr-only">{t("nav.openMenu")}</span>
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-4">
         <SheetHeader className="p-0 pb-4">
           <SheetTitle render={<div />}>
-            <Logo href="/dashboard" />
+            <Logo href={path("/dashboard")} />
           </SheetTitle>
         </SheetHeader>
         <NavLinks onNavigate={() => setOpen(false)} />

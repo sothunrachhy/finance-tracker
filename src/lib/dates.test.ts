@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   currentMonth,
   daysInMonth,
+  formatDate,
   formatMonth,
   isValidISODate,
   isValidMonth,
@@ -38,6 +39,13 @@ describe("month helpers", () => {
   it("formats months", () => {
     expect(formatMonth("2026-11")).toBe("November 2026");
     expect(formatMonth("2026-11", "short")).toBe("Nov 26");
+  });
+
+  it("formats Khmer months and dates from its own table", () => {
+    expect(formatMonth("2026-11", "long", "km")).toBe("វិច្ឆិកា 2026");
+    expect(formatMonth("2026-01", "short", "km")).toBe("មករា 26");
+    expect(formatDate("2026-10-05", "km")).toBe("5 តុលា 2026");
+    expect(formatDate("2026-10-05")).toBe("Oct 5, 2026");
   });
 });
 

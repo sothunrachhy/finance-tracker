@@ -21,6 +21,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { localePath } from "@/i18n/config";
+import { getI18n } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
 import {
   currentMonth,
@@ -41,9 +43,12 @@ import {
   getSpendingByCategory,
 } from "@/server/queries/dashboard";
 
-export const metadata: Metadata = { title: "Dashboard" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("dashboard.title") };
+}
 
-export default function DashboardPage({ searchParams }: PageProps<"/dashboard">) {
+export default function DashboardPage({ searchParams }: PageProps<"/[lang]/dashboard">) {
   return (
     <Suspense fallback={<DashboardSkeleton />}>
       <Dashboard searchParams={searchParams} />
@@ -51,8 +56,9 @@ export default function DashboardPage({ searchParams }: PageProps<"/dashboard">)
   );
 }
 
-async function Dashboard({ searchParams }: Pick<PageProps<"/dashboard">, "searchParams">) {
+async function Dashboard({ searchParams }: Pick<PageProps<"/[lang]/dashboard">, "searchParams">) {
   const user = await getCurrentUser();
+  const { locale, t } = await getI18n();
   const { month: monthParam } = await searchParams;
   const month = isValidMonth(monthParam) ? monthParam : currentMonth();
   const previousMonth = shiftMonth(month, -1);
@@ -69,8 +75,10 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/dashboard">, "search
 
   const net = summary.income - summary.expenses;
   const rate = savingsRate(summary.income, summary.expenses);
-  const previousLabel = formatMonth(previousMonth, "short");
-  const money = (cents: number) => formatMoney(cents, user.currency);
+  const monthName = formatMonth(month, "long", locale);
+  const previousLabel = formatMonth(previousMonth, "short", locale);
+  const money = (cents: number) => formatMoney(cents, user.currency, { locale });
+  const path = (p: string) => localePath(locale, p);
 
   const budgetAlerts = budgets
     .map((budget) => ({ ...budget, status: budgetStatus(budget.spent, budget.amount) }))
@@ -80,14 +88,14 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/dashboard">, "search
   return (
     <>
       <PageHeader
-        title={`Hi, ${user.name.split(" ")[0]}`}
-        description={`Here's your money in ${formatMonth(month)}.`}
+        title={t("dashboard.greeting", { name: user.name.split(" ")[0] })}
+        description={t("dashboard.description", { month: monthName })}
         actions={
           <>
             <MonthPicker month={month} />
             <TransactionDialog categories={categories} today={todayISO()}>
               <Plus aria-hidden />
-              Add transaction
+              {t("transactions.add")}
             </TransactionDialog>
           </>
         }
@@ -96,39 +104,45 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/dashboard">, "search
       <div className="grid gap-4">
         <section
           className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4"
-          aria-label="Monthly totals"
+          aria-label={t("dashboard.totals")}
         >
           <StatTile
-            label="Income"
+            label={t("dashboard.income")}
             icon={ArrowDownLeft}
             value={money(summary.income)}
-            footnote={`${previousLabel}: ${money(previous.income)}`}
+            footnote={t("dashboard.previousMonth", {
+              month: previousLabel,
+              amount: money(previous.income),
+            })}
           />
           <StatTile
-            label="Expenses"
+            label={t("dashboard.expenses")}
             icon={ArrowUpRight}
             value={money(summary.expenses)}
-            footnote={`${previousLabel}: ${money(previous.expenses)}`}
+            footnote={t("dashboard.previousMonth", {
+              month: previousLabel,
+              amount: money(previous.expenses),
+            })}
           />
           <StatTile
-            label="Net"
+            label={t("dashboard.net")}
             icon={Scale}
-            value={formatMoney(net, user.currency, { signDisplay: "exceptZero" })}
-            footnote="Income minus expenses"
+            value={formatMoney(net, user.currency, { signDisplay: "exceptZero", locale })}
+            footnote={t("dashboard.netHint")}
           />
           <StatTile
-            label="Savings rate"
+            label={t("dashboard.savingsRate")}
             icon={PiggyBank}
             value={rate === null ? "—" : formatPercent(rate)}
-            footnote={rate === null ? "No income recorded yet" : "Share of income kept"}
+            footnote={rate === null ? t("dashboard.noIncome") : t("dashboard.savingsHint")}
           />
         </section>
 
         <div className="grid gap-4 lg:grid-cols-5">
           <Card className="lg:col-span-3">
             <CardHeader>
-              <CardTitle>Income vs expenses</CardTitle>
-              <CardDescription>Last 6 months</CardDescription>
+              <CardTitle>{t("dashboard.incomeVsExpenses")}</CardTitle>
+              <CardDescription>{t("dashboard.lastSixMonths")}</CardDescription>
             </CardHeader>
             <CardContent>
               <IncomeExpenseChart data={trend} currency={user.currency} />
@@ -137,15 +151,17 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/dashboard">, "search
 
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Spending by category</CardTitle>
-              <CardDescription>{money(summary.expenses)} total</CardDescription>
+              <CardTitle>{t("dashboard.spendingByCategory")}</CardTitle>
+              <CardDescription>
+                {t("dashboard.totalAmount", { amount: money(summary.expenses) })}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {spending.length > 0 ? (
                 <SpendingByCategory data={spending} currency={user.currency} />
               ) : (
                 <p className="text-muted-foreground py-10 text-center text-sm">
-                  No expenses recorded this month.
+                  {t("dashboard.noExpenses")}
                 </p>
               )}
             </CardContent>
@@ -155,13 +171,13 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/dashboard">, "search
         <div className="grid gap-4 lg:grid-cols-5">
           <Card className="lg:col-span-3">
             <CardHeader>
-              <CardTitle>Recent transactions</CardTitle>
+              <CardTitle>{t("dashboard.recent")}</CardTitle>
               <CardAction>
                 <Link
-                  href={`/transactions?month=${month}`}
+                  href={path(`/transactions?month=${month}`)}
                   className={buttonVariants({ variant: "ghost", size: "sm" })}
                 >
-                  View all
+                  {t("dashboard.viewAll")}
                 </Link>
               </CardAction>
             </CardHeader>
@@ -170,7 +186,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/dashboard">, "search
                 <RecentTransactions rows={recent} currency={user.currency} />
               ) : (
                 <p className="text-muted-foreground py-10 text-center text-sm">
-                  Nothing recorded in {formatMonth(month)} yet.
+                  {t("dashboard.nothingYet", { month: monthName })}
                 </p>
               )}
             </CardContent>
@@ -178,28 +194,31 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/dashboard">, "search
 
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Budget watch</CardTitle>
-              <CardDescription>Categories at 80% of their limit or more</CardDescription>
+              <CardTitle>{t("dashboard.budgetWatch")}</CardTitle>
+              <CardDescription>{t("dashboard.budgetWatchDescription")}</CardDescription>
               <CardAction>
                 <Link
-                  href={`/budgets?month=${month}`}
+                  href={path(`/budgets?month=${month}`)}
                   className={buttonVariants({ variant: "ghost", size: "sm" })}
                 >
-                  Budgets
+                  {t("dashboard.budgetsLink")}
                 </Link>
               </CardAction>
             </CardHeader>
             <CardContent>
               {budgets.length === 0 ? (
                 <p className="text-muted-foreground py-10 text-center text-sm">
-                  No budgets for this month.{" "}
-                  <Link href={`/budgets?month=${month}`} className="text-foreground underline">
-                    Set one
+                  {t("dashboard.noBudgets")}{" "}
+                  <Link
+                    href={path(`/budgets?month=${month}`)}
+                    className="text-foreground underline"
+                  >
+                    {t("dashboard.setOne")}
                   </Link>
                 </p>
               ) : budgetAlerts.length === 0 ? (
                 <p className="text-muted-foreground py-10 text-center text-sm">
-                  All {budgets.length} budgets are on track.
+                  {t("dashboard.allOnTrack", { count: budgets.length })}
                 </p>
               ) : (
                 <ul className="grid gap-4">
@@ -220,10 +239,13 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/dashboard">, "search
                         spent={budget.spent}
                         limit={budget.amount}
                         status={budget.status}
-                        label={`${budget.categoryName} budget`}
+                        label={t("budgets.meterLabel", { name: budget.categoryName })}
                       />
                       <p className="text-muted-foreground text-xs tabular-nums">
-                        {money(budget.spent)} of {money(budget.amount)}
+                        {t("dashboard.spentOf", {
+                          spent: money(budget.spent),
+                          limit: money(budget.amount),
+                        })}
                       </p>
                     </li>
                   ))}

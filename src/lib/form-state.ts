@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { TranslationKey, Translator } from "@/i18n/translator";
 
 /** What every form Server Action returns to `useActionState`. */
 export type FormState =
@@ -12,8 +13,18 @@ export type FormState =
     }
   | undefined;
 
-export function fieldErrors(error: z.ZodError): Record<string, string[] | undefined> {
-  return z.flattenError(error).fieldErrors as Record<string, string[] | undefined>;
+/** Zod issues carry translation keys; this turns them into the user's language. */
+export function fieldErrors(
+  error: z.ZodError,
+  t: Translator,
+): Record<string, string[] | undefined> {
+  const errors = z.flattenError(error).fieldErrors as Record<string, string[] | undefined>;
+  return Object.fromEntries(
+    Object.entries(errors).map(([field, messages]) => [
+      field,
+      messages?.map((key) => t(key as TranslationKey)),
+    ]),
+  );
 }
 
 /** Reads the given fields from FormData as strings (missing fields become ""). */

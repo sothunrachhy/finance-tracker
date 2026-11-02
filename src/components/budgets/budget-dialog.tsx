@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { formatMonth } from "@/lib/dates";
+import { useI18n } from "@/i18n/client";
 import type { FormState } from "@/lib/form-state";
 import { centsToInput } from "@/lib/money";
 import { saveBudget } from "@/server/actions/budgets";
@@ -37,15 +38,18 @@ type BudgetDialogProps = {
 export function BudgetDialog({ triggerProps, children, ...props }: BudgetDialogProps) {
   const [open, setOpen] = useState(false);
   const editing = props.amount !== undefined;
+  const { locale, t } = useI18n();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button {...triggerProps} />}>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>{editing ? "Edit budget" : "Set a budget"}</DialogTitle>
+          <DialogTitle>{editing ? t("budgets.editTitle") : t("budgets.setTitle")}</DialogTitle>
           <DialogDescription>
-            Monthly spending limit for {formatMonth(props.month)}.
+            {t("budgets.dialogDescription", {
+              month: formatMonth(props.month, "long", locale),
+            })}
           </DialogDescription>
         </DialogHeader>
         {open && <BudgetForm {...props} onSaved={() => setOpen(false)} />}
@@ -61,6 +65,7 @@ function BudgetForm({
   amount,
   onSaved,
 }: Omit<BudgetDialogProps, "triggerProps" | "children"> & { onSaved: () => void }) {
+  const { t } = useI18n();
   const [state, formAction] = useActionState(async (prev: FormState, formData: FormData) => {
     const result = await saveBudget(prev, formData);
     if (result?.ok) {
@@ -77,7 +82,7 @@ function BudgetForm({
       <FormMessage message={state?.ok ? undefined : state?.message} />
       <input type="hidden" name="month" value={month} />
 
-      <FormField label="Category" name="categoryId" errors={errors?.categoryId}>
+      <FormField label={t("transactions.category")} name="categoryId" errors={errors?.categoryId}>
         {category ? (
           <>
             <input type="hidden" name="categoryId" value={category.id} />
@@ -92,7 +97,7 @@ function BudgetForm({
             aria-invalid={Boolean(errors?.categoryId) || undefined}
           >
             <NativeSelectOption value="" disabled>
-              Choose a category
+              {t("transactions.chooseCategory")}
             </NativeSelectOption>
             {categories.map((c) => (
               <NativeSelectOption key={c.id} value={c.id}>
@@ -104,7 +109,7 @@ function BudgetForm({
       </FormField>
 
       <FormField
-        label="Monthly limit"
+        label={t("budgets.limit")}
         name="amount"
         inputMode="decimal"
         placeholder="0.00"
@@ -114,8 +119,8 @@ function BudgetForm({
       />
 
       <DialogFooter>
-        <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
-        <SubmitButton>Save budget</SubmitButton>
+        <DialogClose render={<Button variant="outline" />}>{t("common.cancel")}</DialogClose>
+        <SubmitButton>{t("budgets.save")}</SubmitButton>
       </DialogFooter>
     </form>
   );

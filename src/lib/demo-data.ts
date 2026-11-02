@@ -1,3 +1,4 @@
+import type { Locale } from "@/i18n/config";
 import { currentMonth, daysInMonth, shiftMonth, todayISO } from "@/lib/dates";
 
 // Generates realistic-looking data for the demo account: the current month up to
@@ -22,6 +23,42 @@ export const DEMO_BUDGETS: { category: string; amount: number }[] = [
 
 // 5 past months + the current one fills the dashboard's 6-month chart
 export const DEMO_MONTHS_BACK = 5;
+
+/** Khmer versions of the demo notes, keyed by the English note. */
+const DEMO_NOTES_KM: Record<string, string> = {
+  "Monthly salary": "ប្រាក់ខែប្រចាំខែ",
+  Rent: "ថ្លៃឈ្នួលផ្ទះ",
+  "Gym membership": "សមាជិកភាពក្លឹបហាត់ប្រាណ",
+  Internet: "អ៊ីនធឺណិត",
+  Electricity: "អគ្គិសនី",
+  Supermarket: "ផ្សារទំនើប",
+  "Lunch with team": "អាហារថ្ងៃត្រង់ជាមួយក្រុម",
+  "Pizza night": "ភីហ្សាពេលល្ងាច",
+  "Coffee & pastry": "កាហ្វេ និងនំ",
+  "Sushi dinner": "អាហារពេលល្ងាចស៊ូស៊ី",
+  Brunch: "អាហារព្រឹកយឺត",
+  "Bus pass top-up": "បញ្ចូលលុយកាតឡានក្រុង",
+  Taxi: "តាក់ស៊ី",
+  Parking: "ថ្លៃចំណតរថយន្ត",
+  Fuel: "សាំង",
+  Clothes: "សម្លៀកបំពាក់",
+  "Household items": "សម្ភារៈប្រើប្រាស់ក្នុងផ្ទះ",
+  "Phone case": "ស្រោមទូរស័ព្ទ",
+  Books: "សៀវភៅ",
+  Cinema: "មើលភាពយន្ត",
+  "Concert tickets": "សំបុត្រប្រគុំតន្ត្រី",
+  "Board game": "ល្បែងក្ដារ",
+  Bowling: "បូលីង",
+  Pharmacy: "ឱសថស្ថាន",
+  "Gift for a friend": "កាដូជូនមិត្តភក្តិ",
+  "Website project": "គម្រោងគេហទំព័រ",
+  Dividends: "ភាគលាភ",
+};
+
+export function localizeDemoNote(note: string | null, locale: Locale): string | null {
+  if (note === null || locale === "en") return note;
+  return DEMO_NOTES_KM[note] ?? note;
+}
 
 // mulberry32: tiny, fast, deterministic PRNG returning values in [0, 1)
 function createRandom(seed: number): () => number {

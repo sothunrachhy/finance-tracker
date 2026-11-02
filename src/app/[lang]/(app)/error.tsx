@@ -4,8 +4,11 @@ import { RotateCw, TriangleAlert } from "lucide-react";
 import { useEffect } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/i18n/client";
 
 export default function AppError({ error, retry }: { error: unknown; retry: () => void }) {
+  const { t } = useI18n();
+
   useEffect(() => {
     console.error(error); // a real app would report this to an error tracker
   }, [error]);
@@ -13,12 +16,12 @@ export default function AppError({ error, retry }: { error: unknown; retry: () =
   return (
     <EmptyState
       icon={TriangleAlert}
-      title="Something went wrong"
-      description="We couldn't load this page. Your data is safe; please try again."
+      title={t("errors.title")}
+      description={t("errors.description")}
       action={
         <Button onClick={() => retry()}>
           <RotateCw aria-hidden />
-          Try again
+          {t("common.tryAgain")}
         </Button>
       }
     />

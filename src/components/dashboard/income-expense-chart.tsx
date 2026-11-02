@@ -8,21 +8,24 @@ import {
   ChartLegendContent,
   ChartTooltip,
 } from "@/components/ui/chart";
+import { useI18n } from "@/i18n/client";
 import { formatMonth } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import type { MonthTrend } from "@/server/queries/dashboard";
 
-// Categorical slots 1 and 2 (blue, orange): a validated adjacent pair.
-// Green/red are reserved for status, so they aren't used for series.
-const chartConfig = {
-  income: { label: "Income", color: "var(--series-1)" },
-  expenses: { label: "Expenses", color: "var(--series-2)" },
-} satisfies ChartConfig;
-
 export function IncomeExpenseChart({ data, currency }: { data: MonthTrend[]; currency: string }) {
+  const { locale, t } = useI18n();
+
+  // Categorical slots 1 and 2 (blue, orange): a validated adjacent pair.
+  // Green/red are reserved for status, so they aren't used for series.
+  const chartConfig = {
+    income: { label: t("dashboard.income"), color: "var(--series-1)" },
+    expenses: { label: t("dashboard.expenses"), color: "var(--series-2)" },
+  } satisfies ChartConfig;
+
   // The chart works in major units; the table below keeps exact cents.
   const chartData = data.map((d) => ({
-    month: formatMonth(d.month, "short"),
+    month: formatMonth(d.month, "short", locale),
     income: d.income / 100,
     expenses: d.expenses / 100,
   }));
@@ -36,8 +39,11 @@ export function IncomeExpenseChart({ data, currency }: { data: MonthTrend[]; cur
           <YAxis
             tickLine={false}
             axisLine={false}
-            width={56}
-            tickFormatter={(value: number) => formatMoney(value * 100, currency, { compact: true })}
+            // Khmer compact numbers ("$4.5 ពាន់") need a little more room
+            width={locale === "km" ? 72 : 56}
+            tickFormatter={(value: number) =>
+              formatMoney(value * 100, currency, { compact: true, locale })
+            }
           />
           <ChartTooltip
             cursor={{ fill: "var(--muted)" }}
@@ -55,7 +61,7 @@ export function IncomeExpenseChart({ data, currency }: { data: MonthTrend[]; cur
                         {chartConfig[item.dataKey as keyof typeof chartConfig].label}
                       </span>
                       <span className="font-medium tabular-nums">
-                        {formatMoney(Math.round(Number(item.value) * 100), currency)}
+                        {formatMoney(Math.round(Number(item.value) * 100), currency, { locale })}
                       </span>
                     </div>
                   ))}
@@ -77,20 +83,20 @@ export function IncomeExpenseChart({ data, currency }: { data: MonthTrend[]; cur
 
       {/* Same data as a table for screen readers */}
       <table className="sr-only">
-        <caption>Income and expenses by month</caption>
+        <caption>{t("dashboard.chartCaption")}</caption>
         <thead>
           <tr>
-            <th scope="col">Month</th>
-            <th scope="col">Income</th>
-            <th scope="col">Expenses</th>
+            <th scope="col">{t("dashboard.month")}</th>
+            <th scope="col">{t("dashboard.income")}</th>
+            <th scope="col">{t("dashboard.expenses")}</th>
           </tr>
         </thead>
         <tbody>
           {data.map((d) => (
             <tr key={d.month}>
-              <th scope="row">{formatMonth(d.month)}</th>
-              <td>{formatMoney(d.income, currency)}</td>
-              <td>{formatMoney(d.expenses, currency)}</td>
+              <th scope="row">{formatMonth(d.month, "long", locale)}</th>
+              <td>{formatMoney(d.income, currency, { locale })}</td>
+              <td>{formatMoney(d.expenses, currency, { locale })}</td>
             </tr>
           ))}
         </tbody>

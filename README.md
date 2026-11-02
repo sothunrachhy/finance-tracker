@@ -14,6 +14,7 @@ A full-stack personal finance app: log income and expenses, organize them into c
 - **Budgets:** monthly limit per category, warnings at 80% and 100%, copy last month's budgets
 - **Dashboard:** monthly totals, savings rate, spending by category, 6-month income vs expenses chart
 - **CSV export** of one month or your whole history
+- **English and Khmer (ខ្មែរ)**: switch with the 🇬🇧 / 🇰🇭 flags; dates, money and starter categories follow the language
 - **Dark mode**, responsive down to phone width, keyboard and screen-reader friendly
 - **One-click demo account** with six months of realistic sample data
 
@@ -46,6 +47,7 @@ Things worth looking at in the code:
 - **Security details:** passwords hashed with bcrypt, httpOnly session cookie, login errors don't reveal which emails exist, the post-login `?next=` redirect only allows same-site paths, and CSV export neutralizes spreadsheet formulas (CSV injection).
 - **Streaming with Cache Components.** Static parts of each page (navigation, headers) prerender instantly, and the parts that read your data stream in behind `<Suspense>` with skeletons.
 - **Accessible charts.** Colors come from a colorblind-safe palette with separate dark-mode values, spending is shown as ranked bars instead of a pie, budget status always has an icon and a label (never color alone), and the chart has a screen-reader table of its data.
+- **Internationalization without a library.** Every page lives under `/en` or `/km` and is prerendered in both. The proxy picks the language (saved choice, then browser language), typed dictionaries make a missing Khmer string a compile error, and a unit test checks nothing was left untranslated. Browsers ship without Khmer `Intl` data (they silently fall back to English), so Khmer dates and money are formatted from built-in tables to keep server and browser output identical. See [`src/i18n/`](src/i18n/).
 - **No flash of the wrong theme.** A small inline script applies the saved theme before the first paint, without a theme library.
 
 ## Project structure

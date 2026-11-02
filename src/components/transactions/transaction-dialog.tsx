@@ -19,6 +19,7 @@ import {
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { FormState } from "@/lib/form-state";
 import { centsToInput } from "@/lib/money";
+import { useI18n } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { saveTransaction } from "@/server/actions/transactions";
 import type { CategoryOption } from "@/server/queries/categories";
@@ -41,15 +42,18 @@ export function TransactionDialog({
   children,
 }: TransactionDialogProps) {
   const [open, setOpen] = useState(false);
+  const { t } = useI18n();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button {...triggerProps} />}>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{transaction ? "Edit transaction" : "Add transaction"}</DialogTitle>
+          <DialogTitle>
+            {transaction ? t("transactions.editTitle") : t("transactions.add")}
+          </DialogTitle>
           <DialogDescription>
-            {transaction ? "Update the details below." : "Record money coming in or going out."}
+            {transaction ? t("transactions.editDescription") : t("transactions.addDescription")}
           </DialogDescription>
         </DialogHeader>
         {/* Mounted only while open, so every open starts with a fresh form */}
@@ -72,6 +76,7 @@ function TransactionForm({
   transaction,
   onSaved,
 }: Omit<TransactionDialogProps, "triggerProps" | "children"> & { onSaved: () => void }) {
+  const { t, path } = useI18n();
   const [type, setType] = useState<"EXPENSE" | "INCOME">(transaction?.categoryType ?? "EXPENSE");
   const [state, formAction] = useActionState(async (prev: FormState, formData: FormData) => {
     const result = await saveTransaction(prev, formData);
@@ -93,7 +98,7 @@ function TransactionForm({
       <div
         className="bg-muted grid grid-cols-2 gap-1 rounded-lg p-1"
         role="group"
-        aria-label="Type"
+        aria-label={t("transactions.type")}
       >
         {(["EXPENSE", "INCOME"] as const).map((value) => (
           <button
@@ -108,13 +113,13 @@ function TransactionForm({
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {value === "EXPENSE" ? "Expense" : "Income"}
+            {value === "EXPENSE" ? t("transactions.expense") : t("transactions.income")}
           </button>
         ))}
       </div>
 
       <FormField
-        label="Amount"
+        label={t("transactions.amount")}
         name="amount"
         inputMode="decimal"
         placeholder="0.00"
@@ -125,7 +130,7 @@ function TransactionForm({
         errors={errors?.amount}
       />
 
-      <FormField label="Category" name="categoryId" errors={errors?.categoryId}>
+      <FormField label={t("transactions.category")} name="categoryId" errors={errors?.categoryId}>
         {options.length > 0 ? (
           <NativeSelect
             // Remount when the type changes so the selection resets
@@ -140,7 +145,7 @@ function TransactionForm({
             aria-invalid={Boolean(errors?.categoryId) || undefined}
           >
             <NativeSelectOption value="" disabled>
-              Choose a category
+              {t("transactions.chooseCategory")}
             </NativeSelectOption>
             {options.map((category) => (
               <NativeSelectOption key={category.id} value={category.id}>
@@ -150,16 +155,21 @@ function TransactionForm({
           </NativeSelect>
         ) : (
           <p className="text-muted-foreground text-sm">
-            No {type.toLowerCase()} categories yet.{" "}
-            <Link href="/categories" className="text-foreground underline underline-offset-4">
-              Create one
+            {type === "EXPENSE"
+              ? t("transactions.noExpenseCategories")
+              : t("transactions.noIncomeCategories")}{" "}
+            <Link
+              href={path("/categories")}
+              className="text-foreground underline underline-offset-4"
+            >
+              {t("transactions.createOne")}
             </Link>
           </p>
         )}
       </FormField>
 
       <FormField
-        label="Date"
+        label={t("transactions.date")}
         name="date"
         type="date"
         defaultValue={state?.values?.date ?? transaction?.date ?? today}
@@ -167,17 +177,17 @@ function TransactionForm({
       />
 
       <FormField
-        label="Note"
+        label={t("transactions.note")}
         name="note"
-        placeholder="Optional, e.g. Lunch with team"
+        placeholder={t("transactions.notePlaceholder")}
         maxLength={200}
         defaultValue={state?.values?.note ?? transaction?.note ?? ""}
         errors={errors?.note}
       />
 
       <DialogFooter>
-        <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
-        <SubmitButton>{transaction ? "Save changes" : "Add transaction"}</SubmitButton>
+        <DialogClose render={<Button variant="outline" />}>{t("common.cancel")}</DialogClose>
+        <SubmitButton>{transaction ? t("common.saveChanges") : t("transactions.add")}</SubmitButton>
       </DialogFooter>
     </form>
   );

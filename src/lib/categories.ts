@@ -1,3 +1,5 @@
+import type { Locale } from "@/i18n/config";
+
 // Plain data only (no React), so validation, the database seed and tests can use it.
 // The matching icon components live in src/components/category-icon.tsx.
 
@@ -84,3 +86,30 @@ export const DEFAULT_CATEGORIES: DefaultCategory[] = [
   { name: "Entertainment", type: "EXPENSE", color: "orange", icon: "film" },
   { name: "Other", type: "EXPENSE", color: "yellow", icon: "tag" },
 ];
+
+/** Khmer names for the default categories, keyed by the English name. */
+const DEFAULT_CATEGORY_NAMES_KM: Record<string, string> = {
+  Salary: "ប្រាក់ខែ",
+  Freelance: "ការងារឯករាជ្យ",
+  Investments: "ការវិនិយោគ",
+  "Other Income": "ចំណូលផ្សេងៗ",
+  Housing: "លំនៅដ្ឋាន",
+  Groceries: "គ្រឿងទេស",
+  "Dining Out": "ញ៉ាំអាហារខាងក្រៅ",
+  Transport: "ការធ្វើដំណើរ",
+  Utilities: "ទឹកភ្លើង",
+  Subscriptions: "ការជាវប្រចាំ",
+  Health: "សុខភាព",
+  Shopping: "ការទិញទំនិញ",
+  Entertainment: "ការកម្សាន្ត",
+  Other: "ផ្សេងៗ",
+};
+
+/** Default categories named in the user's language (users can rename them later). */
+export function defaultCategoriesFor(locale: Locale): DefaultCategory[] {
+  if (locale === "en") return DEFAULT_CATEGORIES;
+  return DEFAULT_CATEGORIES.map((c) => ({
+    ...c,
+    name: DEFAULT_CATEGORY_NAMES_KM[c.name] ?? c.name,
+  }));
+}

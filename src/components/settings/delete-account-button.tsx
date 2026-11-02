@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/i18n/client";
 import { deleteAccount } from "@/server/actions/settings";
 
 const CONFIRM_TEXT = "DELETE";
@@ -23,21 +24,22 @@ const CONFIRM_TEXT = "DELETE";
 export function DeleteAccountButton({ disabled }: { disabled?: boolean }) {
   const [confirmation, setConfirmation] = useState("");
   const [pending, startTransition] = useTransition();
+  const { t } = useI18n();
 
   return (
     <AlertDialog onOpenChange={() => setConfirmation("")}>
       <AlertDialogTrigger disabled={disabled} render={<Button variant="destructive" />}>
-        Delete account
+        {t("settings.deleteAccount")}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete your account?</AlertDialogTitle>
-          <AlertDialogDescription>
-            All your transactions, categories and budgets will be permanently deleted.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{t("settings.deleteTitle")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("settings.deleteWarning")}</AlertDialogDescription>
         </AlertDialogHeader>
         <div className="grid gap-2">
-          <Label htmlFor="confirm-delete">Type {CONFIRM_TEXT} to confirm</Label>
+          <Label htmlFor="confirm-delete">
+            {t("settings.typeToConfirm", { word: CONFIRM_TEXT })}
+          </Label>
           <Input
             id="confirm-delete"
             value={confirmation}
@@ -46,7 +48,7 @@ export function DeleteAccountButton({ disabled }: { disabled?: boolean }) {
           />
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={pending}>{t("common.cancel")}</AlertDialogCancel>
           <Button
             variant="destructive"
             disabled={confirmation !== CONFIRM_TEXT || pending}
@@ -59,7 +61,7 @@ export function DeleteAccountButton({ disabled }: { disabled?: boolean }) {
             }
           >
             {pending && <Loader2 className="animate-spin" aria-hidden />}
-            Delete forever
+            {t("settings.deleteForever")}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

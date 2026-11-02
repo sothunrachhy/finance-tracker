@@ -3,27 +3,30 @@
 import { ArrowLeftRight, LayoutDashboard, Settings, Tags, Target } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useI18n } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
 export const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
-  { href: "/categories", label: "Categories", icon: Tags },
-  { href: "/budgets", label: "Budgets", icon: Target },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
+  { href: "/transactions", key: "transactions", icon: ArrowLeftRight },
+  { href: "/categories", key: "categories", icon: Tags },
+  { href: "/budgets", key: "budgets", icon: Target },
+  { href: "/settings", key: "settings", icon: Settings },
 ] as const;
 
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { t, path } = useI18n();
 
   return (
-    <nav className="grid gap-1" aria-label="Main">
-      {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-        const active = pathname === href || pathname.startsWith(`${href}/`);
+    <nav className="grid gap-1" aria-label={t("nav.main")}>
+      {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
+        const localized = path(href);
+        const active = pathname === localized || pathname.startsWith(`${localized}/`);
         return (
           <Link
             key={href}
-            href={href}
+            href={localized}
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={cn(
@@ -32,7 +35,7 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             )}
           >
             <Icon className="size-4" aria-hidden />
-            {label}
+            {t(`nav.${key}`)}
           </Link>
         );
       })}

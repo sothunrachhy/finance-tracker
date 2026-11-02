@@ -1,19 +1,32 @@
 import { z } from "zod";
+import type { TranslationKey } from "@/i18n/translator";
 import { CATEGORY_COLORS, CATEGORY_ICON_NAMES } from "@/lib/categories";
 import { isValidISODate, isValidMonth } from "@/lib/dates";
 import { CURRENCY_CODES, MAX_AMOUNT_CENTS, parseAmountToCents } from "@/lib/money";
 
-// Shared by the forms (client) and the Server Actions (server), so the rules
-// can never drift apart.
+// Shared validation rules for every Server Action. Error messages are translation
+// keys (e.g. "validation.email"); the action translates them into the user's
+// language before returning them to the form.
 
-const email = z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address"));
+type ValidationKey = Extract<TranslationKey, `validation.${string}`>;
+const msg = (key: ValidationKey) => key;
+
+const email = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email(msg("validation.email")));
 
 const password = z
   .string()
-  .min(8, "Password must be at least 8 characters")
-  .max(72, "Password must be at most 72 characters"); // bcrypt ignores bytes past 72
+  .min(8, msg("validation.passwordMin"))
+  .max(72, msg("validation.passwordMax")); // bcrypt ignores bytes past 72
 
-const name = z.string().trim().min(1, "Name is required").max(50, "Name is too long");
+const name = z
+  .string()
+  .trim()
+  .min(1, msg("validation.nameRequired"))
+  .max(50, msg("validation.nameTooLong"));
 
 /** Accepts "12.50" style input and outputs integer cents. */
 const amount = z
@@ -21,7 +34,7 @@ const amount = z
   .transform((value, ctx) => {
     const cents = parseAmountToCents(value);
     if (cents === null) {
-      ctx.addIssue({ code: "custom", message: "Enter an amount like 12.50" });
+      ctx.addIssue({ code: "custom", message: msg("validation.amountFormat") });
       return z.NEVER;
     }
     return cents;
@@ -30,56 +43,60 @@ const amount = z
     z
       .number()
       .int()
-      .positive("Amount must be greater than 0")
-      .max(MAX_AMOUNT_CENTS, "Amount is too large"),
+      .positive(msg("validation.amountPositive"))
+      .max(MAX_AMOUNT_CENTS, msg("validation.amountTooLarge")),
   );
 
-const id = z.uuid("Invalid id");
+const id = z.uuid(msg("validation.invalidId"));
 
 export const registerSchema = z.object({ name, email, password });
 
 export const loginSchema = z.object({
   email,
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(1, msg("validation.passwordRequired")),
 });
 
 export const transactionSchema = z.object({
-  categoryId: z.uuid("Choose a category"),
+  categoryId: z.uuid(msg("validation.chooseCategory")),
   amount,
-  date: z.string().refine(isValidISODate, "Enter a valid date"),
+  date: z.string().refine(isValidISODate, msg("validation.date")),
   note: z
     .string()
     .trim()
-    .max(200, "Note is too long")
+    .max(200, msg("validation.noteTooLong"))
     .transform((v) => v || null),
 });
 
 export const categorySchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(30, "Name is too long"),
-  type: z.enum(["INCOME", "EXPENSE"], "Choose income or expense"),
-  color: z.enum(CATEGORY_COLORS, "Choose a color"),
-  icon: z.enum(CATEGORY_ICON_NAMES, "Choose an icon"),
+  name: z
+    .string()
+    .trim()
+    .min(1, msg("validation.nameRequired"))
+    .max(30, msg("validation.nameTooLong")),
+  type: z.enum(["INCOME", "EXPENSE"], msg("validation.chooseType")),
+  color: z.enum(CATEGORY_COLORS, msg("validation.chooseColor")),
+  icon: z.enum(CATEGORY_ICON_NAMES, msg("validation.chooseIcon")),
 });
 
 export const budgetSchema = z.object({
-  categoryId: z.uuid("Choose a category"),
-  month: z.string().refine(isValidMonth, "Invalid month"),
+  categoryId: z.uuid(msg("validation.chooseCategory")),
+  month: z.string().refine(isValidMonth, msg("validation.invalidMonth")),
   amount,
 });
 
 export const profileSchema = z.object({
   name,
-  currency: z.enum(CURRENCY_CODES, "Choose a currency"),
+  currency: z.enum(CURRENCY_CODES, msg("validation.chooseCurrency")),
 });
 
 export const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Enter your current password"),
+    currentPassword: z.string().min(1, msg("validation.currentPasswordRequired")),
     newPassword: password,
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: msg("validation.passwordsMismatch"),
     path: ["confirmPassword"],
   });
 

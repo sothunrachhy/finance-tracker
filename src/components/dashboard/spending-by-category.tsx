@@ -1,4 +1,5 @@
 import { CategoryIconBadge } from "@/components/category-icon";
+import { getI18n } from "@/i18n/server";
 import { formatMoney } from "@/lib/money";
 import { formatPercent } from "@/lib/stats";
 import type { CategorySpending } from "@/server/queries/dashboard";
@@ -10,13 +11,14 @@ const MAX_ROWS = 7;
  * compare far more precisely than pie slices, and every row prints its amount
  * and share, so nothing depends on color alone.
  */
-export function SpendingByCategory({
+export async function SpendingByCategory({
   data,
   currency,
 }: {
   data: CategorySpending[];
   currency: string;
 }) {
+  const { locale, t } = await getI18n();
   const total = data.reduce((sum, row) => sum + row.total, 0);
 
   // Fold the long tail into one row so the chart stays readable
@@ -26,7 +28,7 @@ export function SpendingByCategory({
           ...data.slice(0, MAX_ROWS - 1),
           {
             id: "other",
-            name: `${data.length - MAX_ROWS + 1} more categories`,
+            name: t("dashboard.moreCategories", { count: data.length - MAX_ROWS + 1 }),
             color: "",
             icon: "tag",
             total: data.slice(MAX_ROWS - 1).reduce((sum, row) => sum + row.total, 0),
@@ -42,7 +44,7 @@ export function SpendingByCategory({
           <div className="flex items-center gap-2 text-sm">
             <CategoryIconBadge icon={row.icon} color={row.color} className="size-6 rounded-md" />
             <span className="min-w-0 flex-1 truncate font-medium">{row.name}</span>
-            <span className="tabular-nums">{formatMoney(row.total, currency)}</span>
+            <span className="tabular-nums">{formatMoney(row.total, currency, { locale })}</span>
             <span className="text-muted-foreground w-10 text-right text-xs tabular-nums">
               {formatPercent(row.total / total)}
             </span>

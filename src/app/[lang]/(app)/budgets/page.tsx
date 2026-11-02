@@ -11,6 +11,7 @@ import { MonthPicker } from "@/components/month-picker";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getI18n } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
 import { currentMonth, formatMonth, isValidMonth, shiftMonth } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
@@ -19,9 +20,12 @@ import { getBudgetsWithSpending } from "@/server/queries/budgets";
 import { getCategories } from "@/server/queries/categories";
 import { getSpendingByCategory } from "@/server/queries/dashboard";
 
-export const metadata: Metadata = { title: "Budgets" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("budgets.title") };
+}
 
-export default function BudgetsPage({ searchParams }: PageProps<"/budgets">) {
+export default function BudgetsPage({ searchParams }: PageProps<"/[lang]/budgets">) {
   return (
     <Suspense fallback={<BudgetsSkeleton />}>
       <Budgets searchParams={searchParams} />
@@ -29,8 +33,9 @@ export default function BudgetsPage({ searchParams }: PageProps<"/budgets">) {
   );
 }
 
-async function Budgets({ searchParams }: Pick<PageProps<"/budgets">, "searchParams">) {
+async function Budgets({ searchParams }: Pick<PageProps<"/[lang]/budgets">, "searchParams">) {
   const user = await getCurrentUser();
+  const { locale, t } = await getI18n();
   const { month: monthParam } = await searchParams;
   const month = isValidMonth(monthParam) ? monthParam : currentMonth();
   const previousMonth = shiftMonth(month, -1);
@@ -42,7 +47,7 @@ async function Budgets({ searchParams }: Pick<PageProps<"/budgets">, "searchPara
     getSpendingByCategory(user.id, month),
   ]);
 
-  const money = (cents: number) => formatMoney(cents, user.currency);
+  const money = (cents: number) => formatMoney(cents, user.currency, { locale });
   const budgeted = new Set(budgets.map((b) => b.categoryId));
   const unbudgetedCategories = categories.filter(
     (c) => c.type === "EXPENSE" && !budgeted.has(c.id),
@@ -51,20 +56,21 @@ async function Budgets({ searchParams }: Pick<PageProps<"/budgets">, "searchPara
   const totalLimit = budgets.reduce((sum, b) => sum + b.amount, 0);
   const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
   const canCopy = previousBudgets.some((b) => !budgeted.has(b.categoryId));
-  const copyLabel = `Copy ${formatMonth(previousMonth, "short")} budgets`;
+  const copyLabel = t("budgets.copy", { month: formatMonth(previousMonth, "short", locale) });
+  const monthName = formatMonth(month, "long", locale);
 
   const addButton = (
     <BudgetDialog month={month} categories={unbudgetedCategories}>
       <Plus aria-hidden />
-      Add budget
+      {t("budgets.add")}
     </BudgetDialog>
   );
 
   return (
     <>
       <PageHeader
-        title="Budgets"
-        description={`Monthly spending limits for ${formatMonth(month)}.`}
+        title={t("budgets.title")}
+        description={t("budgets.description", { month: monthName })}
         actions={
           <>
             <MonthPicker month={month} />
@@ -76,8 +82,8 @@ async function Budgets({ searchParams }: Pick<PageProps<"/budgets">, "searchPara
       {budgets.length === 0 ? (
         <EmptyState
           icon={Target}
-          title={`No budgets for ${formatMonth(month)}`}
-          description="Set a monthly limit on a category and we'll warn you at 80%."
+          title={t("budgets.emptyTitle", { month: monthName })}
+          description={t("budgets.emptyDescription")}
           action={
             <div className="flex flex-wrap justify-center gap-2">
               {addButton}
@@ -89,25 +95,29 @@ async function Budgets({ searchParams }: Pick<PageProps<"/budgets">, "searchPara
         <div className="grid gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Total</CardTitle>
-              <CardDescription>Across {budgets.length} budgeted categories</CardDescription>
+              <CardTitle>{t("budgets.total")}</CardTitle>
+              <CardDescription>
+                {t("budgets.totalDescription", { count: budgets.length })}
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3">
               <BudgetMeter
                 spent={totalSpent}
                 limit={totalLimit}
                 status={budgetStatus(totalSpent, totalLimit)}
-                label="Total budget"
+                label={t("budgets.totalMeter")}
               />
               <div className="flex flex-wrap justify-between gap-2 text-sm tabular-nums">
                 <span>
-                  {money(totalSpent)}{" "}
-                  <span className="text-muted-foreground">spent of {money(totalLimit)}</span>
+                  {t("budgets.spentOfTotal", {
+                    spent: money(totalSpent),
+                    limit: money(totalLimit),
+                  })}
                 </span>
                 <span className="text-muted-foreground">
                   {totalLimit >= totalSpent
-                    ? `${money(totalLimit - totalSpent)} left`
-                    : `${money(totalSpent - totalLimit)} over`}
+                    ? t("budgets.left", { amount: money(totalLimit - totalSpent) })
+                    : t("budgets.over", { amount: money(totalSpent - totalLimit) })}
                 </span>
               </div>
               {canCopy && (
@@ -126,11 +136,9 @@ async function Budgets({ searchParams }: Pick<PageProps<"/budgets">, "searchPara
         <section className="mt-8 grid gap-3" aria-labelledby="unbudgeted-heading">
           <div>
             <h2 id="unbudgeted-heading" className="font-medium">
-              Spending without a budget
+              {t("budgets.unbudgetedTitle")}
             </h2>
-            <p className="text-muted-foreground text-sm">
-              Categories you spent on this month that have no limit yet.
-            </p>
+            <p className="text-muted-foreground text-sm">{t("budgets.unbudgetedDescription")}</p>
           </div>
           <ul className="divide-y rounded-xl border">
             {unbudgetedSpending.map((row) => (
@@ -144,7 +152,7 @@ async function Budgets({ searchParams }: Pick<PageProps<"/budgets">, "searchPara
                   category={{ id: row.id, name: row.name }}
                   triggerProps={{ variant: "outline", size: "sm" }}
                 >
-                  Set budget
+                  {t("budgets.setBudget")}
                 </BudgetDialog>
               </li>
             ))}

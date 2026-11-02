@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { centsToInput, formatMoney, parseAmountToCents } from "./money";
+import { centsToInput, currencyName, formatMoney, parseAmountToCents } from "./money";
 
 describe("parseAmountToCents", () => {
   it.each([
@@ -51,6 +51,17 @@ describe("formatMoney", () => {
   it("can always show the sign", () => {
     expect(formatMoney(-1250, "USD", { signDisplay: "always" })).toBe("-$12.50");
     expect(formatMoney(1250, "USD", { signDisplay: "always" })).toBe("+$12.50");
+  });
+
+  it("formats Khmer with the symbol after the number", () => {
+    expect(formatMoney(123456, "USD", { locale: "km" })).toBe("1,234.56$");
+    expect(formatMoney(-1250, "USD", { locale: "km", signDisplay: "always" })).toBe("-12.50$");
+    expect(formatMoney(4000000, "KHR", { locale: "km" })).toBe("40,000.00៛");
+  });
+
+  it("names currencies in Khmer without relying on browser locale data", () => {
+    expect(currencyName("KHR", "km")).toBe("រៀលកម្ពុជា");
+    expect(currencyName("KHR", "en")).toBe("Cambodian Riel");
   });
 
   it("supports compact axis labels", () => {

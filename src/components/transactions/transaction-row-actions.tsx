@@ -2,6 +2,7 @@
 
 import { Pencil } from "lucide-react";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { useI18n } from "@/i18n/client";
 import { deleteTransaction } from "@/server/actions/transactions";
 import type { CategoryOption } from "@/server/queries/categories";
 import type { TransactionRow } from "@/server/queries/transactions";
@@ -16,7 +17,8 @@ export function TransactionRowActions({
   categories: CategoryOption[];
   today: string;
 }) {
-  const label = transaction.note ?? transaction.categoryName;
+  const { t } = useI18n();
+  const name = transaction.note ?? transaction.categoryName;
 
   return (
     <div className="flex justify-end gap-1">
@@ -27,16 +29,16 @@ export function TransactionRowActions({
         triggerProps={{
           variant: "ghost",
           size: "icon-sm",
-          "aria-label": `Edit ${label}`,
-          title: "Edit",
+          "aria-label": t("transactions.editLabel", { name }),
+          title: t("common.edit"),
         }}
       >
         <Pencil />
       </TransactionDialog>
       <ConfirmDeleteButton
-        label={`Delete ${label}`}
-        title="Delete this transaction?"
-        description="This can't be undone."
+        label={t("transactions.deleteLabel", { name })}
+        title={t("transactions.deleteTitle")}
+        description={t("common.cannotUndo")}
         onConfirm={() => deleteTransaction(transaction.id)}
       />
     </div>

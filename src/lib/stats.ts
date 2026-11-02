@@ -18,8 +18,10 @@ export function budgetStatus(spent: number, limit: number): BudgetStatus {
   return "ok";
 }
 
+/** "46%". Khmer uses the same Latin digits and sign, so one format serves both languages. */
 export function formatPercent(ratio: number): string {
-  return new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 0 }).format(
-    ratio,
-  );
+  return new Intl.NumberFormat("en-US", {
+    style: "percent",
+    maximumFractionDigits: 0,
+  }).format(ratio);
 }

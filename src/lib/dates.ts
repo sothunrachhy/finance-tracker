@@ -1,3 +1,5 @@
+import type { Locale } from "@/i18n/config";
+
 // Months are "YYYY-MM" strings and days are "YYYY-MM-DD" strings, matching the
 // Postgres `date` columns. All math is done in UTC so results never shift with the
 // timezone of the server or browser.
@@ -53,7 +55,32 @@ export function recentMonths(month: string, count: number): string[] {
   return Array.from({ length: count }, (_, i) => shiftMonth(month, i - count + 1));
 }
 
-export function formatMonth(month: string, style: "long" | "short" = "long"): string {
+// Browsers ship without Khmer date data (Intl silently falls back to English), so
+// Khmer month names come from this table to match on server and browser.
+const KHMER_MONTHS = [
+  "មករា",
+  "កុម្ភៈ",
+  "មីនា",
+  "មេសា",
+  "ឧសភា",
+  "មិថុនា",
+  "កក្កដា",
+  "សីហា",
+  "កញ្ញា",
+  "តុលា",
+  "វិច្ឆិកា",
+  "ធ្នូ",
+];
+
+export function formatMonth(
+  month: string,
+  style: "long" | "short" = "long",
+  locale: Locale = "en",
+): string {
+  if (locale === "km") {
+    const [year, monthNumber] = month.split("-");
+    return `${KHMER_MONTHS[Number(monthNumber) - 1]} ${style === "long" ? year : year.slice(2)}`;
+  }
   return new Intl.DateTimeFormat("en-US", {
     month: style,
     year: style === "long" ? "numeric" : "2-digit",
@@ -61,7 +88,11 @@ export function formatMonth(month: string, style: "long" | "short" = "long"): st
   }).format(new Date(`${month}-01T00:00:00Z`));
 }
 
-export function formatDate(isoDate: string): string {
+export function formatDate(isoDate: string, locale: Locale = "en"): string {
+  if (locale === "km") {
+    const [year, month, day] = isoDate.split("-");
+    return `${Number(day)} ${KHMER_MONTHS[Number(month) - 1]} ${year}`;
+  }
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",

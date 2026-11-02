@@ -10,6 +10,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useI18n } from "@/i18n/client";
 import { applyTheme, readTheme, type Theme, THEME_STORAGE_KEY } from "@/lib/theme";
 
 // A tiny external store over localStorage, so every component reading the theme
@@ -44,6 +45,7 @@ export function useTheme(): [Theme, (theme: Theme) => void] {
 
 export function ThemeToggle() {
   const [theme, setTheme] = useTheme();
+  const { t } = useI18n();
 
   // React's dev-mode remount resets <html> attributes; re-apply before paint.
   useLayoutEffect(() => applyTheme(), []);
@@ -53,21 +55,21 @@ export function ThemeToggle() {
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
         <Sun className="dark:hidden" aria-hidden />
         <Moon className="hidden dark:block" aria-hidden />
-        <span className="sr-only">Change theme</span>
+        <span className="sr-only">{t("theme.change")}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-36">
         <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as Theme)}>
           <DropdownMenuRadioItem value="light">
             <Sun aria-hidden />
-            Light
+            {t("theme.light")}
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="dark">
             <Moon aria-hidden />
-            Dark
+            {t("theme.dark")}
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="system">
             <Monitor aria-hidden />
-            System
+            {t("theme.system")}
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>

@@ -14,6 +14,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/i18n/client";
 import type { ActionResult } from "@/server/actions/transactions";
 
 type ConfirmDeleteButtonProps = {
@@ -34,6 +35,7 @@ export function ConfirmDeleteButton({
 }: ConfirmDeleteButtonProps) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const { t } = useI18n();
 
   function handleConfirm() {
     startTransition(async () => {
@@ -61,10 +63,10 @@ export function ConfirmDeleteButton({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={pending}>{t("common.cancel")}</AlertDialogCancel>
           <Button variant="destructive" onClick={handleConfirm} disabled={pending}>
             {pending && <Loader2 className="animate-spin" aria-hidden />}
-            Delete
+            {t("common.delete")}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

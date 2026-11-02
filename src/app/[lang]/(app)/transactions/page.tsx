@@ -10,6 +10,8 @@ import { TransactionFilters } from "@/components/transactions/transaction-filter
 import { TransactionsTable } from "@/components/transactions/transactions-table";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { localePath } from "@/i18n/config";
+import { getI18n } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
 import { todayISO } from "@/lib/dates";
 import { parseTransactionFilters } from "@/lib/filters";
@@ -17,9 +19,12 @@ import { formatMoney } from "@/lib/money";
 import { getCategories } from "@/server/queries/categories";
 import { getTransactions } from "@/server/queries/transactions";
 
-export const metadata: Metadata = { title: "Transactions" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("transactions.title") };
+}
 
-export default function TransactionsPage({ searchParams }: PageProps<"/transactions">) {
+export default function TransactionsPage({ searchParams }: PageProps<"/[lang]/transactions">) {
   return (
     <Suspense fallback={<TransactionsSkeleton />}>
       <Transactions searchParams={searchParams} />
@@ -27,8 +32,12 @@ export default function TransactionsPage({ searchParams }: PageProps<"/transacti
   );
 }
 
-async function Transactions({ searchParams }: Pick<PageProps<"/transactions">, "searchParams">) {
+async function Transactions({
+  searchParams,
+}: Pick<PageProps<"/[lang]/transactions">, "searchParams">) {
   const user = await getCurrentUser();
+  const { locale, t } = await getI18n();
+  const money = (cents: number) => formatMoney(cents, user.currency, { locale });
   const params = await searchParams;
   const filters = parseTransactionFilters(params);
   const [categories, result] = await Promise.all([
@@ -41,14 +50,12 @@ async function Transactions({ searchParams }: Pick<PageProps<"/transactions">, "
   return (
     <>
       <PageHeader
-        title="Transactions"
-        description={
-          <>
-            {result.total} {result.total === 1 ? "transaction" : "transactions"} · Income{" "}
-            {formatMoney(result.income, user.currency)} · Expenses{" "}
-            {formatMoney(result.expenses, user.currency)}
-          </>
-        }
+        title={t("transactions.title")}
+        description={t("transactions.summary", {
+          count: result.total,
+          income: money(result.income),
+          expenses: money(result.expenses),
+        })}
         actions={
           <>
             <a
@@ -57,11 +64,11 @@ async function Transactions({ searchParams }: Pick<PageProps<"/transactions">, "
               download
             >
               <Download aria-hidden />
-              Export CSV
+              {t("transactions.export")}
             </a>
             <TransactionDialog categories={categories} today={today}>
               <Plus aria-hidden />
-              Add transaction
+              {t("transactions.add")}
             </TransactionDialog>
           </>
         }
@@ -84,24 +91,22 @@ async function Transactions({ searchParams }: Pick<PageProps<"/transactions">, "
             <Pagination
               page={filters.page}
               pageCount={result.pageCount}
-              basePath="/transactions"
+              basePath={localePath(locale, "/transactions")}
               searchParams={params}
             />
           </>
         ) : (
           <EmptyState
             icon={ArrowLeftRight}
-            title={hasFilters ? "No matching transactions" : "No transactions yet"}
+            title={hasFilters ? t("transactions.noMatchTitle") : t("transactions.emptyTitle")}
             description={
-              hasFilters
-                ? "Try a different search or clear the filters."
-                : "Add your first income or expense for this period."
+              hasFilters ? t("transactions.noMatchDescription") : t("transactions.emptyDescription")
             }
             action={
               !hasFilters && (
                 <TransactionDialog categories={categories} today={today}>
                   <Plus aria-hidden />
-                  Add transaction
+                  {t("transactions.add")}
                 </TransactionDialog>
               )
             }

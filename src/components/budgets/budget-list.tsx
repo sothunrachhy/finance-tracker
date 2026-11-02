@@ -3,6 +3,7 @@
 import { Pencil } from "lucide-react";
 import { CategoryIconBadge } from "@/components/category-icon";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { useI18n } from "@/i18n/client";
 import { formatMoney } from "@/lib/money";
 import { budgetStatus } from "@/lib/stats";
 import { deleteBudget } from "@/server/actions/budgets";
@@ -19,6 +20,9 @@ export function BudgetList({
   month: string;
   currency: string;
 }) {
+  const { locale, t } = useI18n();
+  const money = (cents: number) => formatMoney(cents, currency, { locale });
+
   return (
     <ul className="grid gap-3 md:grid-cols-2">
       {budgets.map((budget) => {
@@ -42,16 +46,16 @@ export function BudgetList({
                 triggerProps={{
                   variant: "ghost",
                   size: "icon-sm",
-                  "aria-label": `Edit ${budget.categoryName} budget`,
-                  title: "Edit",
+                  "aria-label": t("budgets.editLabel", { name: budget.categoryName }),
+                  title: t("common.edit"),
                 }}
               >
                 <Pencil />
               </BudgetDialog>
               <ConfirmDeleteButton
-                label={`Delete ${budget.categoryName} budget`}
-                title={`Remove the ${budget.categoryName} budget?`}
-                description="Your transactions stay; only the spending limit is removed."
+                label={t("budgets.deleteLabel", { name: budget.categoryName })}
+                title={t("budgets.deleteTitle", { name: budget.categoryName })}
+                description={t("budgets.deleteDescription")}
                 onConfirm={() => deleteBudget(budget.id)}
               />
             </div>
@@ -59,19 +63,16 @@ export function BudgetList({
               spent={budget.spent}
               limit={budget.amount}
               status={status}
-              label={`${budget.categoryName} budget`}
+              label={t("budgets.meterLabel", { name: budget.categoryName })}
             />
             <div className="flex justify-between text-sm tabular-nums">
               <span>
-                {formatMoney(budget.spent, currency)}{" "}
-                <span className="text-muted-foreground">
-                  of {formatMoney(budget.amount, currency)}
-                </span>
+                {t("budgets.spentOf", { spent: money(budget.spent), limit: money(budget.amount) })}
               </span>
               <span className={remaining < 0 ? "font-medium" : "text-muted-foreground"}>
                 {remaining >= 0
-                  ? `${formatMoney(remaining, currency)} left`
-                  : `${formatMoney(-remaining, currency)} over`}
+                  ? t("budgets.left", { amount: money(remaining) })
+                  : t("budgets.over", { amount: money(-remaining) })}
               </span>
             </div>
           </li>

@@ -3,9 +3,11 @@
 import { useActionState } from "react";
 import { FormField, FormMessage } from "@/components/form-field";
 import { SubmitButton } from "@/components/submit-button";
+import { useI18n } from "@/i18n/client";
 import { login } from "@/server/actions/auth";
 
 export function LoginForm({ next }: { next?: string }) {
+  const { t } = useI18n();
   const [state, formAction] = useActionState(login, undefined);
 
   return (
@@ -13,7 +15,7 @@ export function LoginForm({ next }: { next?: string }) {
       <FormMessage message={state?.message} />
       <input type="hidden" name="next" value={next ?? ""} />
       <FormField
-        label="Email"
+        label={t("auth.email")}
         name="email"
         type="email"
         autoComplete="email"
@@ -22,7 +24,7 @@ export function LoginForm({ next }: { next?: string }) {
         errors={state?.fieldErrors?.email}
       />
       <FormField
-        label="Password"
+        label={t("auth.password")}
         name="password"
         type="password"
         autoComplete="current-password"
@@ -30,7 +32,7 @@ export function LoginForm({ next }: { next?: string }) {
         errors={state?.fieldErrors?.password}
       />
       <SubmitButton size="lg" className="w-full">
-        Log in
+        {t("auth.loginButton")}
       </SubmitButton>
     </form>
   );

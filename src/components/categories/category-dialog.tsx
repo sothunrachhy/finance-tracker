@@ -24,6 +24,7 @@ import {
   type CategoryIcon,
   categoryColorVar,
 } from "@/lib/categories";
+import { useI18n } from "@/i18n/client";
 import type { FormState } from "@/lib/form-state";
 import { saveCategory } from "@/server/actions/categories";
 import type { CategoryOption } from "@/server/queries/categories";
@@ -42,16 +43,17 @@ export function CategoryDialog({
   children,
 }: CategoryDialogProps) {
   const [open, setOpen] = useState(false);
+  const { t } = useI18n();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button {...triggerProps} />}>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{category ? "Edit category" : "New category"}</DialogTitle>
-          <DialogDescription>
-            Pick a name, color and icon so it&apos;s easy to spot in lists.
-          </DialogDescription>
+          <DialogTitle>
+            {category ? t("categories.editTitle") : t("categories.newTitle")}
+          </DialogTitle>
+          <DialogDescription>{t("categories.dialogDescription")}</DialogDescription>
         </DialogHeader>
         {open && (
           <CategoryForm
@@ -74,6 +76,7 @@ function CategoryForm({
   defaultType: "INCOME" | "EXPENSE";
   onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const [state, formAction] = useActionState(async (prev: FormState, formData: FormData) => {
     const result = await saveCategory(prev, formData);
     if (result?.ok) {
@@ -94,7 +97,7 @@ function CategoryForm({
       {category && <input type="hidden" name="id" value={category.id} />}
 
       <FormField
-        label="Name"
+        label={t("categories.name")}
         name="name"
         autoFocus
         maxLength={30}
@@ -103,18 +106,18 @@ function CategoryForm({
       />
 
       <FormField
-        label="Type"
+        label={t("categories.type")}
         name="type"
         errors={errors?.type}
-        hint={category && "Type can't change once a category exists."}
+        hint={category && t("categories.typeLocked")}
       >
         {category ? (
           <>
             {/* Disabled selects aren't submitted, so send the value separately */}
             <input type="hidden" name="type" value={category.type} />
             <NativeSelect id="type" className="w-full" value={category.type} disabled>
-              <NativeSelectOption value="EXPENSE">Expense</NativeSelectOption>
-              <NativeSelectOption value="INCOME">Income</NativeSelectOption>
+              <NativeSelectOption value="EXPENSE">{t("categories.expense")}</NativeSelectOption>
+              <NativeSelectOption value="INCOME">{t("categories.incomeType")}</NativeSelectOption>
             </NativeSelect>
           </>
         ) : (
@@ -124,14 +127,14 @@ function CategoryForm({
             className="w-full"
             defaultValue={values?.type ?? defaultType}
           >
-            <NativeSelectOption value="EXPENSE">Expense</NativeSelectOption>
-            <NativeSelectOption value="INCOME">Income</NativeSelectOption>
+            <NativeSelectOption value="EXPENSE">{t("categories.expense")}</NativeSelectOption>
+            <NativeSelectOption value="INCOME">{t("categories.incomeType")}</NativeSelectOption>
           </NativeSelect>
         )}
       </FormField>
 
       <fieldset>
-        <legend className="mb-2 text-sm font-medium">Color</legend>
+        <legend className="mb-2 text-sm font-medium">{t("categories.color")}</legend>
         <div className="flex flex-wrap gap-2">
           {CATEGORY_COLORS.map((option) => (
             <label key={option} className="relative cursor-pointer">
@@ -141,7 +144,7 @@ function CategoryForm({
                 value={option}
                 defaultChecked={option === color}
                 className="peer sr-only"
-                aria-label={option[0].toUpperCase() + option.slice(1)}
+                aria-label={t(`categories.colors.${option}`)}
               />
               <span
                 className="ring-offset-background peer-checked:ring-foreground peer-focus-visible:ring-ring block size-7 rounded-full ring-2 ring-transparent ring-offset-2"
@@ -154,7 +157,7 @@ function CategoryForm({
       </fieldset>
 
       <fieldset>
-        <legend className="mb-2 text-sm font-medium">Icon</legend>
+        <legend className="mb-2 text-sm font-medium">{t("categories.icon")}</legend>
         <div className="grid max-h-40 grid-cols-8 gap-1 overflow-y-auto rounded-lg border p-1">
           {CATEGORY_ICON_NAMES.map((option) => {
             const Icon = CATEGORY_ICONS[option];
@@ -179,8 +182,10 @@ function CategoryForm({
       </fieldset>
 
       <DialogFooter>
-        <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
-        <SubmitButton>{category ? "Save changes" : "Add category"}</SubmitButton>
+        <DialogClose render={<Button variant="outline" />}>{t("common.cancel")}</DialogClose>
+        <SubmitButton>
+          {category ? t("common.saveChanges") : t("categories.addButton")}
+        </SubmitButton>
       </DialogFooter>
     </form>
   );

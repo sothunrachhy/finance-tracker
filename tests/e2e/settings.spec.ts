@@ -33,7 +33,7 @@ test("profile, currency, password change and account deletion", async ({ page })
   await expect(dialog.getByRole("button", { name: "Delete forever" })).toBeDisabled();
   await dialog.getByLabel("Type DELETE to confirm").fill("DELETE");
   await dialog.getByRole("button", { name: "Delete forever" }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/en");
 
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);

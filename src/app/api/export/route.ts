@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, lt, type SQL } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { categories, transactions } from "@/db/schema";
+import { getRequestI18n } from "@/i18n/request";
 import { toCsv } from "@/lib/csv";
 import { isValidMonth, monthRange } from "@/lib/dates";
 import { db } from "@/lib/db";
@@ -34,11 +35,12 @@ export async function GET(request: NextRequest) {
     .where(and(...conditions))
     .orderBy(desc(transactions.date), desc(transactions.createdAt));
 
+  const { t } = await getRequestI18n();
   const csv = toCsv(
-    ["Date", "Type", "Category", "Amount", "Note"],
+    [t("csv.date"), t("csv.type"), t("csv.category"), t("csv.amount"), t("csv.note")],
     rows.map((row) => [
       row.date,
-      row.type === "INCOME" ? "Income" : "Expense",
+      row.type === "INCOME" ? t("csv.income") : t("csv.expense"),
       row.category,
       // Signed, so a spreadsheet SUM gives the net
       `${row.type === "EXPENSE" ? "-" : ""}${centsToInput(row.amount)}`,

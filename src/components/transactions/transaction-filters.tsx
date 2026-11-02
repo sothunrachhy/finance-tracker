@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { TransactionFilters as Filters } from "@/lib/filters";
+import { useI18n } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import type { CategoryOption } from "@/server/queries/categories";
 
@@ -22,6 +23,7 @@ export function TransactionFilters({
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
   const [query, setQuery] = useState(filters.q);
+  const { t } = useI18n();
 
   // The URL only updates once a navigation finishes, so quick successive changes
   // (clear filters, then type) build on this ref instead of a stale URL.
@@ -68,8 +70,8 @@ export function TransactionFilters({
         />
         <Input
           type="search"
-          placeholder="Search notes or categories"
-          aria-label="Search transactions"
+          placeholder={t("transactions.searchPlaceholder")}
+          aria-label={t("transactions.searchLabel")}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           className="pl-8"
@@ -77,7 +79,7 @@ export function TransactionFilters({
       </div>
 
       <NativeSelect
-        aria-label="Filter by type"
+        aria-label={t("transactions.filterType")}
         value={filters.type}
         onChange={(event) =>
           update({
@@ -86,17 +88,17 @@ export function TransactionFilters({
           })
         }
       >
-        <NativeSelectOption value="ALL">All types</NativeSelectOption>
-        <NativeSelectOption value="EXPENSE">Expenses</NativeSelectOption>
-        <NativeSelectOption value="INCOME">Income</NativeSelectOption>
+        <NativeSelectOption value="ALL">{t("transactions.allTypes")}</NativeSelectOption>
+        <NativeSelectOption value="EXPENSE">{t("transactions.expensesOption")}</NativeSelectOption>
+        <NativeSelectOption value="INCOME">{t("transactions.incomeOption")}</NativeSelectOption>
       </NativeSelect>
 
       <NativeSelect
-        aria-label="Filter by category"
+        aria-label={t("transactions.filterCategory")}
         value={filters.categoryId ?? ""}
         onChange={(event) => update({ category: event.target.value || null })}
       >
-        <NativeSelectOption value="">All categories</NativeSelectOption>
+        <NativeSelectOption value="">{t("transactions.allCategories")}</NativeSelectOption>
         {visibleCategories.map((category) => (
           <NativeSelectOption key={category.id} value={category.id}>
             {category.name}
@@ -113,7 +115,7 @@ export function TransactionFilters({
           }}
         >
           <X aria-hidden />
-          Clear filters
+          {t("transactions.clearFilters")}
         </Button>
       )}
     </div>

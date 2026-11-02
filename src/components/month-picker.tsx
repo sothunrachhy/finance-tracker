@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/i18n/client";
 import { currentMonth, formatMonth, shiftMonth } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,7 @@ export function MonthPicker({ month, allowAll = false }: { month: string; allowA
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { locale, t } = useI18n();
   const [pending, startTransition] = useTransition();
   const isAll = month === "all";
 
@@ -29,25 +31,25 @@ export function MonthPicker({ month, allowAll = false }: { month: string; allowA
         size="icon"
         disabled={isAll}
         onClick={() => go(shiftMonth(month, -1))}
-        aria-label="Previous month"
+        aria-label={t("monthPicker.previous")}
       >
         <ChevronLeft />
       </Button>
       <span className="min-w-36 text-center text-sm font-medium tabular-nums" aria-live="polite">
-        {isAll ? "All time" : formatMonth(month)}
+        {isAll ? t("monthPicker.allTime") : formatMonth(month, "long", locale)}
       </span>
       <Button
         variant="outline"
         size="icon"
         disabled={isAll}
         onClick={() => go(shiftMonth(month, 1))}
-        aria-label="Next month"
+        aria-label={t("monthPicker.next")}
       >
         <ChevronRight />
       </Button>
       {allowAll && (
         <Button variant="ghost" onClick={() => go(isAll ? currentMonth() : "all")}>
-          {isAll ? "By month" : "All time"}
+          {isAll ? t("monthPicker.byMonth") : t("monthPicker.allTime")}
         </Button>
       )}
     </div>

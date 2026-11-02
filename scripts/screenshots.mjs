@@ -1,10 +1,14 @@
-// Captures README screenshots of the demo account: `node scripts/screenshots.mjs`
-// Needs the app running (npm run build && npm run start -- -p 3100).
+// Captures README screenshots of the demo account: `node scripts/screenshots.mjs [outDir]`
+// Set LOCALE=km for the Khmer version. Needs the app running
+// (npm run build && npm run start -- -p 3100).
 import { chromium } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3100";
+const LOCALE = process.env.LOCALE ?? "en";
 const OUT_DIR = process.argv[2] ?? "docs/screenshots";
+const SUFFIX = LOCALE === "en" ? "" : `-${LOCALE}`;
+
 // Last month has a full month of demo data, so it makes for better pictures
 const now = new Date();
 const last = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
@@ -31,15 +35,16 @@ for (const scheme of ["light", "dark"]) {
       deviceScaleFactor: 2,
     });
     const page = await context.newPage();
-    await page.goto(`${BASE_URL}/`);
-    await page.getByRole("button", { name: /Try the demo/ }).click();
-    await page.waitForURL("**/dashboard");
+    await page.goto(`${BASE_URL}/${LOCALE}`);
+    // The demo button is the landing page's only form
+    await page.locator("main form button[type=submit]").click();
+    await page.waitForURL(`**/${LOCALE}/dashboard`);
 
     for (const [name, path] of PAGES) {
-      await page.goto(`${BASE_URL}${path}`);
+      await page.goto(`${BASE_URL}/${LOCALE}${path}`);
       await page.waitForLoadState("networkidle");
       await page.screenshot({
-        path: `${OUT_DIR}/${name}-${viewport.name}-${scheme}.png`,
+        path: `${OUT_DIR}/${name}-${viewport.name}-${scheme}${SUFFIX}.png`,
         fullPage: viewport.name === "mobile",
       });
     }

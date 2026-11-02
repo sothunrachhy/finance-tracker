@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useI18n } from "@/i18n/client";
 import { logout } from "@/server/actions/auth";
 
 function initials(name: string): string {
@@ -25,6 +26,7 @@ function initials(name: string): string {
 
 export function UserMenu({ name, email }: { name: string; email: string }) {
   const [pending, startTransition] = useTransition();
+  const { t, path } = useI18n();
 
   return (
     <DropdownMenu>
@@ -32,7 +34,7 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
         render={<Button variant="ghost" size="icon" className="bg-muted rounded-full" />}
       >
         <span className="text-xs font-semibold">{initials(name)}</span>
-        <span className="sr-only">Account menu</span>
+        <span className="sr-only">{t("nav.accountMenu")}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuGroup>
@@ -42,13 +44,13 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link href="/settings" />}>
+        <DropdownMenuItem render={<Link href={path("/settings")} />}>
           <Settings />
-          Settings
+          {t("nav.settings")}
         </DropdownMenuItem>
         <DropdownMenuItem disabled={pending} onClick={() => startTransition(() => logout())}>
           <LogOut />
-          Log out
+          {t("nav.logout")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

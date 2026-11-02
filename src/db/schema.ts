@@ -42,9 +42,9 @@ export const categories = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     type: categoryType("type").notNull(),
-    // Hex color used in charts, e.g. "#22c55e"
+    // Palette key such as "blue" (see CATEGORY_COLORS), so dark mode gets its own shade
     color: text("color").notNull(),
-    // Icon name from lucide-react
+    // Icon key such as "utensils" (see CATEGORY_ICONS)
     icon: text("icon").notNull(),
     createdAt: timestamps.createdAt,
   },

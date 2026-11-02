@@ -82,7 +82,7 @@ npm install
 cp .env.example .env          # then set SESSION_SECRET to a random string
 npm run db:up                 # start Postgres in Docker (port 5436)
 npm run db:migrate            # create the tables
-npm run db:seed               # optional: create the demo account now
+npm run db:seed               # optional: create the demo accounts now
 
 npm run dev                   # http://localhost:3000
 ```
@@ -101,7 +101,7 @@ npm run dev                   # http://localhost:3000
 | `npm run db:generate` | Create a migration after editing the schema    |
 | `npm run db:migrate`  | Apply migrations                               |
 | `npm run db:studio`   | Browse the database in your browser            |
-| `npm run db:seed`     | Rebuild the demo account                       |
+| `npm run db:seed`     | Rebuild the English and Khmer demo accounts    |
 
 ## Testing
 

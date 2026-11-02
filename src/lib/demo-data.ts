@@ -1,7 +1,7 @@
 import { currentMonth, daysInMonth, shiftMonth, todayISO } from "@/lib/dates";
 
 // Generates realistic-looking data for the demo account: the current month up to
-// today plus the 3 months before it. A seeded random generator makes the output
+// today plus the DEMO_MONTHS_BACK months before it. A seeded random generator makes the output
 // identical on every run, which keeps the demo (and its tests) predictable.
 
 export type DemoTransaction = {
@@ -20,7 +20,8 @@ export const DEMO_BUDGETS: { category: string; amount: number }[] = [
   { category: "Subscriptions", amount: 3_000 },
 ];
 
-export const DEMO_MONTHS_BACK = 3;
+// 5 past months + the current one fills the dashboard's 6-month chart
+export const DEMO_MONTHS_BACK = 5;
 
 // mulberry32: tiny, fast, deterministic PRNG returning values in [0, 1)
 function createRandom(seed: number): () => number {

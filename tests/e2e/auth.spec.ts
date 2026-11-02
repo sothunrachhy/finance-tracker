@@ -21,7 +21,7 @@ test("signed-out visitors are sent to login, then back where they were going", a
 
 test("register, log out, and log back in", async ({ page }) => {
   const { email, password } = await registerNewUser(page, "Ada Lovelace");
-  await expect(page.getByRole("heading", { name: "Welcome back, Ada" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Hi, Ada" })).toBeVisible();
 
   await page.getByRole("button", { name: "Account menu" }).click();
   await page.getByRole("menuitem", { name: "Log out" }).click();
@@ -65,5 +65,5 @@ test("demo button logs into the sample account", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: /Try the demo/ }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByRole("heading", { name: "Welcome back, Demo" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Hi, Demo" })).toBeVisible();
 });

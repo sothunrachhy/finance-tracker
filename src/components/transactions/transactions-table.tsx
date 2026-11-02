@@ -1,4 +1,5 @@
 import { CategoryIconBadge } from "@/components/category-icon";
+import { FlowIcon } from "@/components/flow-icon";
 import {
   Table,
   TableBody,
@@ -70,17 +71,14 @@ export async function TransactionsTable({
               <TableCell className="text-muted-foreground hidden max-w-xs truncate md:table-cell">
                 {row.note ?? "—"}
               </TableCell>
-              <TableCell
-                className={
-                  row.categoryType === "INCOME"
-                    ? "text-success text-right font-medium tabular-nums"
-                    : "text-right font-medium tabular-nums"
-                }
-              >
-                {formatMoney(row.categoryType === "INCOME" ? row.amount : -row.amount, currency, {
-                  signDisplay: "always",
-                  locale,
-                })}
+              <TableCell className="text-right font-medium tabular-nums">
+                <span className="inline-flex items-center gap-1.5">
+                  <FlowIcon type={row.categoryType} />
+                  {formatMoney(row.categoryType === "INCOME" ? row.amount : -row.amount, currency, {
+                    signDisplay: "always",
+                    locale,
+                  })}
+                </span>
               </TableCell>
               <TableCell>
                 <TransactionRowActions

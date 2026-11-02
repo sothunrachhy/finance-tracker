@@ -1,8 +1,8 @@
 import { CategoryIconBadge } from "@/components/category-icon";
+import { FlowIcon } from "@/components/flow-icon";
 import { getI18n } from "@/i18n/server";
 import { formatDate } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
-import { cn } from "@/lib/utils";
 import type { TransactionRow } from "@/server/queries/transactions";
 
 export async function RecentTransactions({
@@ -27,7 +27,8 @@ export async function RecentTransactions({
                 {row.categoryName} · {formatDate(row.date, locale)}
               </span>
             </div>
-            <span className={cn("text-sm font-medium tabular-nums", isIncome && "text-success")}>
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium tabular-nums">
+              <FlowIcon type={row.categoryType} />
               {formatMoney(isIncome ? row.amount : -row.amount, currency, {
                 signDisplay: "always",
                 locale,

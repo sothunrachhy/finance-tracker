@@ -20,13 +20,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SettingsPage() {
   const { t } = await getI18n();
 
+  // Centered column, so wide screens don't leave a big empty area on the right
   return (
-    <>
+    <div className="mx-auto w-full max-w-3xl">
       <PageHeader title={t("settings.title")} description={t("settings.description")} />
-      <Suspense fallback={<Skeleton className="h-96 max-w-3xl" />}>
+      <Suspense fallback={<Skeleton className="h-96" />}>
         <Settings />
       </Suspense>
-    </>
+    </div>
   );
 }
 
@@ -36,7 +37,7 @@ async function Settings() {
   const isDemo = isDemoEmail(user.email);
 
   return (
-    <div className="grid max-w-3xl gap-6">
+    <div className="grid gap-6">
       {isDemo && (
         <p className="bg-muted flex items-start gap-2 rounded-lg px-3 py-2 text-sm">
           <Info className="mt-0.5 size-4 shrink-0" aria-hidden />

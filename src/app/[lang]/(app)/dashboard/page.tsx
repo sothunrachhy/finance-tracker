@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowUpRight, PiggyBank, Plus, Scale } from "lucide-react";
+import { PiggyBank, Plus, Scale } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -8,6 +8,7 @@ import { IncomeExpenseChart } from "@/components/dashboard/income-expense-chart"
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { SpendingByCategory } from "@/components/dashboard/spending-by-category";
 import { StatTile } from "@/components/dashboard/stat-tile";
+import { FlowIcon } from "@/components/flow-icon";
 import { MonthPicker } from "@/components/month-picker";
 import { PageHeader } from "@/components/page-header";
 import { TransactionDialog } from "@/components/transactions/transaction-dialog";
@@ -75,6 +76,8 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/[lang]/dashboard">, 
 
   const net = summary.income - summary.expenses;
   const rate = savingsRate(summary.income, summary.expenses);
+  const toneOf = (value: number | null) =>
+    value === null || value === 0 ? "neutral" : value > 0 ? "positive" : "negative";
   const monthName = formatMonth(month, "long", locale);
   const previousLabel = formatMonth(previousMonth, "short", locale);
   const money = (cents: number) => formatMoney(cents, user.currency, { locale });
@@ -108,7 +111,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/[lang]/dashboard">, 
         >
           <StatTile
             label={t("dashboard.income")}
-            icon={ArrowDownLeft}
+            icon={<FlowIcon type="INCOME" className="size-4" />}
             value={money(summary.income)}
             footnote={t("dashboard.previousMonth", {
               month: previousLabel,
@@ -117,7 +120,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/[lang]/dashboard">, 
           />
           <StatTile
             label={t("dashboard.expenses")}
-            icon={ArrowUpRight}
+            icon={<FlowIcon type="EXPENSE" className="size-4" />}
             value={money(summary.expenses)}
             footnote={t("dashboard.previousMonth", {
               month: previousLabel,
@@ -126,19 +129,23 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/[lang]/dashboard">, 
           />
           <StatTile
             label={t("dashboard.net")}
-            icon={Scale}
+            icon={<Scale className="size-4" aria-hidden />}
+            tone={toneOf(net)}
             value={formatMoney(net, user.currency, { signDisplay: "exceptZero", locale })}
             footnote={t("dashboard.netHint")}
           />
           <StatTile
             label={t("dashboard.savingsRate")}
-            icon={PiggyBank}
+            icon={<PiggyBank className="size-4" aria-hidden />}
+            tone={toneOf(rate)}
             value={rate === null ? "—" : formatPercent(rate)}
             footnote={rate === null ? t("dashboard.noIncome") : t("dashboard.savingsHint")}
           />
         </section>
 
-        <div className="grid gap-4 lg:grid-cols-5">
+        {/* items-start: each card is as tall as its content, so a short category list
+            doesn't leave a big empty card next to the chart */}
+        <div className="grid items-start gap-4 lg:grid-cols-5">
           <Card className="lg:col-span-3">
             <CardHeader>
               <CardTitle>{t("dashboard.incomeVsExpenses")}</CardTitle>

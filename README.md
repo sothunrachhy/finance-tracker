@@ -16,7 +16,7 @@ A full-stack personal finance app: log income and expenses, organize them into c
 - **CSV export** of one month or your whole history
 - **English and Khmer (ខ្មែរ)**: switch with the 🇬🇧 / 🇰🇭 flags; dates, money and starter categories follow the language
 - **Dark mode**, responsive down to phone width, keyboard and screen-reader friendly
-- **One-click demo account** with six months of realistic sample data
+- **One-click demo** with six months of realistic sample data: every visitor gets a private copy, deleted after 24 hours
 
 | Dark mode                                                       | Budgets                                                | Mobile                                                              |
 | --------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------- |
@@ -82,26 +82,25 @@ npm install
 cp .env.example .env          # then set SESSION_SECRET to a random string
 npm run db:up                 # start Postgres in Docker (port 5436)
 npm run db:migrate            # create the tables
-npm run db:seed               # optional: create the demo accounts now
 
 npm run dev                   # http://localhost:3000
 ```
 
 ### Scripts
 
-| Command               | What it does                                   |
-| --------------------- | ---------------------------------------------- |
-| `npm run dev`         | Start the dev server                           |
-| `npm run build`       | Production build                               |
-| `npm test`            | Unit tests (Vitest)                            |
-| `npm run test:e2e`    | End-to-end tests (needs `npm run build` first) |
-| `npm run lint`        | ESLint                                         |
-| `npm run typecheck`   | TypeScript                                     |
-| `npm run format`      | Prettier                                       |
-| `npm run db:generate` | Create a migration after editing the schema    |
-| `npm run db:migrate`  | Apply migrations                               |
-| `npm run db:studio`   | Browse the database in your browser            |
-| `npm run db:seed`     | Rebuild the English and Khmer demo accounts    |
+| Command                 | What it does                                   |
+| ----------------------- | ---------------------------------------------- |
+| `npm run dev`           | Start the dev server                           |
+| `npm run build`         | Production build                               |
+| `npm test`              | Unit tests (Vitest)                            |
+| `npm run test:e2e`      | End-to-end tests (needs `npm run build` first) |
+| `npm run lint`          | ESLint                                         |
+| `npm run typecheck`     | TypeScript                                     |
+| `npm run format`        | Prettier                                       |
+| `npm run db:generate`   | Create a migration after editing the schema    |
+| `npm run db:migrate`    | Apply migrations                               |
+| `npm run db:studio`     | Browse the database in your browser            |
+| `npm run db:clean-demo` | Delete all demo accounts                       |
 
 ## Testing
 
@@ -124,7 +123,7 @@ npm run build && npm run test:e2e
 4. In the Vercel project's **Environment Variables**, add:
    - `DATABASE_URL`: the Neon connection string
    - `SESSION_SECRET`: a new random string (`node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`)
-5. Deploy. The demo account is created automatically the first time someone clicks **Try the demo**.
+5. Deploy. Each click on **Try the demo** creates a private demo copy; copies older than a day are removed automatically.
 
 For later schema changes, run `npm run db:migrate` against Neon again before deploying.
 

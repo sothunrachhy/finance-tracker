@@ -83,31 +83,33 @@ function BudgetForm({
       <input type="hidden" name="month" value={month} />
 
       <FormField label={t("transactions.category")} name="categoryId" errors={errors?.categoryId}>
-        {category ? (
-          <>
-            <input type="hidden" name="categoryId" value={category.id} />
-            <p className="text-sm font-medium">{category.name}</p>
-          </>
-        ) : (
-          <NativeSelect
-            // Remount after a failed submit so the chosen category is restored
-            key={state?.values?.categoryId}
-            id="categoryId"
-            name="categoryId"
-            className="w-full"
-            defaultValue={state?.values?.categoryId ?? ""}
-            aria-invalid={Boolean(errors?.categoryId) || undefined}
-          >
-            <NativeSelectOption value="" disabled>
-              {t("transactions.chooseCategory")}
-            </NativeSelectOption>
-            {categories.map((c) => (
-              <NativeSelectOption key={c.id} value={c.id}>
-                {c.name}
+        {({ invalid }) =>
+          category ? (
+            <>
+              <input type="hidden" name="categoryId" value={category.id} />
+              <p className="text-sm font-medium">{category.name}</p>
+            </>
+          ) : (
+            <NativeSelect
+              // Remount after a failed submit so the chosen category is restored
+              key={state?.values?.categoryId}
+              id="categoryId"
+              name="categoryId"
+              className="w-full"
+              defaultValue={state?.values?.categoryId ?? ""}
+              aria-invalid={invalid || undefined}
+            >
+              <NativeSelectOption value="" disabled>
+                {t("transactions.chooseCategory")}
               </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        )}
+              {categories.map((c) => (
+                <NativeSelectOption key={c.id} value={c.id}>
+                  {c.name}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          )
+        }
       </FormField>
 
       <FormField

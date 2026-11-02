@@ -106,11 +106,13 @@ test("manage categories", async ({ page }) => {
   await expect(dialog.getByText("You already have a category with this name")).toBeVisible();
   await dialog.getByRole("button", { name: "Cancel" }).click();
 
-  // A category that has transactions can't be deleted
+  // A category that has transactions can't be deleted: the dialog only explains why
   await page.getByRole("button", { name: "Delete Transport" }).click();
-  await page.getByRole("alertdialog").getByRole("button", { name: "Delete" }).click();
-  await expect(page.getByText(/still has transactions/).last()).toBeVisible();
-  await page.getByRole("alertdialog").getByRole("button", { name: "Cancel" }).click();
+  const blocked = page.getByRole("alertdialog");
+  await expect(blocked).toContainText("“Transport” can't be deleted yet");
+  await expect(blocked).toContainText("It still has 1 transaction");
+  await expect(blocked.getByRole("button", { name: "Delete" })).toHaveCount(0);
+  await blocked.getByRole("button", { name: "Close" }).click();
 
   // An unused one can
   await page.getByRole("button", { name: "Delete Pets" }).click();

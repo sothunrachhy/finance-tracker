@@ -26,6 +26,16 @@ export function toISODate(date: Date): string {
   return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
 }
 
+// Transactions must fall in this window, so typos like 2099 or 1926 can't slip in
+export const MIN_TRANSACTION_DATE = "2000-01-01";
+
+/** The latest allowed transaction date: one year from today (room for planned payments). */
+export function maxTransactionDate(now: Date = new Date()): string {
+  const date = new Date(now);
+  date.setUTCFullYear(date.getUTCFullYear() + 1);
+  return toISODate(date);
+}
+
 export function todayISO(now: Date = new Date()): string {
   return toISODate(now);
 }

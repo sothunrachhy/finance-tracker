@@ -1,7 +1,12 @@
 import { z } from "zod";
 import type { TranslationKey } from "@/i18n/translator";
 import { CATEGORY_COLORS, CATEGORY_ICON_NAMES } from "@/lib/categories";
-import { isValidISODate, isValidMonth } from "@/lib/dates";
+import {
+  isValidISODate,
+  isValidMonth,
+  MIN_TRANSACTION_DATE,
+  maxTransactionDate,
+} from "@/lib/dates";
 import { CURRENCY_CODES, MAX_AMOUNT_CENTS, parseAmountToCents } from "@/lib/money";
 
 // Shared validation rules for every Server Action. Error messages are translation
@@ -34,7 +39,12 @@ const amount = z
   .transform((value, ctx) => {
     const cents = parseAmountToCents(value);
     if (cents === null) {
-      ctx.addIssue({ code: "custom", message: msg("validation.amountFormat") });
+      // A well-formed number only fails to parse when it's too big to store
+      const wellFormed = /^\s*\d[\d,]*(\.\d{1,2})?\s*$/.test(value);
+      ctx.addIssue({
+        code: "custom",
+        message: msg(wellFormed ? "validation.amountTooLarge" : "validation.amountFormat"),
+      });
       return z.NEVER;
     }
     return cents;
@@ -59,7 +69,11 @@ export const loginSchema = z.object({
 export const transactionSchema = z.object({
   categoryId: z.uuid(msg("validation.chooseCategory")),
   amount,
-  date: z.string().refine(isValidISODate, msg("validation.date")),
+  date: z
+    .string()
+    .refine(isValidISODate, { message: msg("validation.date"), abort: true })
+    .refine((date) => date >= MIN_TRANSACTION_DATE, msg("validation.dateTooEarly"))
+    .refine((date) => date <= maxTransactionDate(), msg("validation.dateTooLate")),
   note: z
     .string()
     .trim()

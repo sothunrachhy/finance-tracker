@@ -11,9 +11,12 @@ type FormFieldProps = {
   errors?: string[];
   hint?: ReactNode;
   className?: string;
-  /** Custom control (select, textarea...). Defaults to an <Input>. */
-  children?: ReactNode;
-} & Omit<ComponentProps<"input">, "name">;
+  /**
+   * Custom control (select, textarea...). Defaults to an <Input>. Pass a function to
+   * get `invalid`, so the control's error styling clears together with the message.
+   */
+  children?: ReactNode | ((field: { invalid: boolean }) => ReactNode);
+} & Omit<ComponentProps<"input">, "name" | "children">;
 
 /** Label + control + error message, wired together for screen readers. */
 export function FormField({
@@ -37,15 +40,17 @@ export function FormField({
   return (
     <div className={cn("grid gap-2", className)} onInput={dismiss} onChange={dismiss}>
       <Label htmlFor={id}>{label}</Label>
-      {children ?? (
-        <Input
-          id={id}
-          name={name}
-          aria-invalid={hasError || undefined}
-          aria-describedby={hasError ? errorId : undefined}
-          {...inputProps}
-        />
-      )}
+      {typeof children === "function"
+        ? children({ invalid: hasError })
+        : (children ?? (
+            <Input
+              id={id}
+              name={name}
+              aria-invalid={hasError || undefined}
+              aria-describedby={hasError ? errorId : undefined}
+              {...inputProps}
+            />
+          ))}
       {hint && !hasError && <p className="text-muted-foreground text-xs">{hint}</p>}
       {hasError && (
         <p id={errorId} className="text-destructive text-sm">

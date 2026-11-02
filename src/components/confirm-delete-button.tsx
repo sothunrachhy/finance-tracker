@@ -24,6 +24,8 @@ type ConfirmDeleteButtonProps = {
   description: string;
   onConfirm: () => Promise<ActionResult>;
   disabled?: boolean;
+  /** Explain why it can't be deleted yet: the dialog then only offers Close */
+  blocked?: boolean;
 };
 
 export function ConfirmDeleteButton({
@@ -32,6 +34,7 @@ export function ConfirmDeleteButton({
   description,
   onConfirm,
   disabled,
+  blocked = false,
 }: ConfirmDeleteButtonProps) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -63,11 +66,17 @@ export function ConfirmDeleteButton({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>{t("common.cancel")}</AlertDialogCancel>
-          <Button variant="destructive" onClick={handleConfirm} disabled={pending}>
-            {pending && <Loader2 className="animate-spin" aria-hidden />}
-            {t("common.delete")}
-          </Button>
+          {blocked ? (
+            <AlertDialogCancel>{t("common.close")}</AlertDialogCancel>
+          ) : (
+            <>
+              <AlertDialogCancel disabled={pending}>{t("common.cancel")}</AlertDialogCancel>
+              <Button variant="destructive" onClick={handleConfirm} disabled={pending}>
+                {pending && <Loader2 className="animate-spin" aria-hidden />}
+                {t("common.delete")}
+              </Button>
+            </>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

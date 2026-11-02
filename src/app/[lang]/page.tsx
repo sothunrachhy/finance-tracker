@@ -67,10 +67,6 @@ export default async function Home() {
           ))}
         </section>
       </main>
-
-      <footer className="text-muted-foreground border-t py-6 text-center text-sm">
-        {t("landing.footer")}
-      </footer>
     </div>
   );
 }

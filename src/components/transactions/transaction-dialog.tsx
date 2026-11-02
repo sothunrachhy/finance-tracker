@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { FormState } from "@/lib/form-state";
+import { MIN_TRANSACTION_DATE, maxTransactionDate } from "@/lib/dates";
 import { centsToInput } from "@/lib/money";
 import { useI18n } from "@/i18n/client";
 import { cn } from "@/lib/utils";
@@ -131,48 +132,52 @@ function TransactionForm({
       />
 
       <FormField label={t("transactions.category")} name="categoryId" errors={errors?.categoryId}>
-        {options.length > 0 ? (
-          <NativeSelect
-            // A <select> ignores defaultValue changes after it mounts, so remount it when
-            // the type changes (reset the choice) or after a failed submit (restore it)
-            key={`${type}:${state?.values?.categoryId ?? ""}`}
-            id="categoryId"
-            name="categoryId"
-            className="w-full"
-            defaultValue={
-              state?.values?.categoryId ??
-              (transaction?.categoryType === type ? transaction.categoryId : "")
-            }
-            aria-invalid={Boolean(errors?.categoryId) || undefined}
-          >
-            <NativeSelectOption value="" disabled>
-              {t("transactions.chooseCategory")}
-            </NativeSelectOption>
-            {options.map((category) => (
-              <NativeSelectOption key={category.id} value={category.id}>
-                {category.name}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        ) : (
-          <p className="text-muted-foreground text-sm">
-            {type === "EXPENSE"
-              ? t("transactions.noExpenseCategories")
-              : t("transactions.noIncomeCategories")}{" "}
-            <Link
-              href={path("/categories")}
-              className="text-foreground underline underline-offset-4"
+        {({ invalid }) =>
+          options.length > 0 ? (
+            <NativeSelect
+              // A <select> ignores defaultValue changes after it mounts, so remount it when
+              // the type changes (reset the choice) or after a failed submit (restore it)
+              key={`${type}:${state?.values?.categoryId ?? ""}`}
+              id="categoryId"
+              name="categoryId"
+              className="w-full"
+              defaultValue={
+                state?.values?.categoryId ??
+                (transaction?.categoryType === type ? transaction.categoryId : "")
+              }
+              aria-invalid={invalid || undefined}
             >
-              {t("transactions.createOne")}
-            </Link>
-          </p>
-        )}
+              <NativeSelectOption value="" disabled>
+                {t("transactions.chooseCategory")}
+              </NativeSelectOption>
+              {options.map((category) => (
+                <NativeSelectOption key={category.id} value={category.id}>
+                  {category.name}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              {type === "EXPENSE"
+                ? t("transactions.noExpenseCategories")
+                : t("transactions.noIncomeCategories")}{" "}
+              <Link
+                href={path("/categories")}
+                className="text-foreground underline underline-offset-4"
+              >
+                {t("transactions.createOne")}
+              </Link>
+            </p>
+          )
+        }
       </FormField>
 
       <FormField
         label={t("transactions.date")}
         name="date"
         type="date"
+        min={MIN_TRANSACTION_DATE}
+        max={maxTransactionDate(new Date(`${today}T00:00:00Z`))}
         defaultValue={state?.values?.date ?? transaction?.date ?? today}
         errors={errors?.date}
       />

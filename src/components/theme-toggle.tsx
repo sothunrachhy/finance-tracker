@@ -59,15 +59,15 @@ export function ThemeToggle() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-36">
         <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as Theme)}>
-          <DropdownMenuRadioItem value="light">
+          <DropdownMenuRadioItem closeOnClick value="light">
             <Sun aria-hidden />
             {t("theme.light")}
           </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="dark">
+          <DropdownMenuRadioItem closeOnClick value="dark">
             <Moon aria-hidden />
             {t("theme.dark")}
           </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="system">
+          <DropdownMenuRadioItem closeOnClick value="system">
             <Monitor aria-hidden />
             {t("theme.system")}
           </DropdownMenuRadioItem>

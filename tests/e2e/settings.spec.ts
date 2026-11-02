@@ -83,7 +83,7 @@ test("demo account can't change its password or be deleted", async ({ page }) =>
   await page.getByRole("button", { name: /Try the demo/ }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
   await page.goto("/settings");
-  await expect(page.getByText(/shared demo account/)).toBeVisible();
+  await expect(page.getByText(/your own demo copy/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Change password" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Delete account" })).toBeDisabled();
 });

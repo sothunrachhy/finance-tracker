@@ -1,14 +1,13 @@
 import "server-only";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, ilike, inArray, lt, or } from "drizzle-orm";
 import { budgets, categories, transactions, users } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
 import { dictionaries } from "@/i18n/dictionaries";
 import { defaultCategoriesFor } from "@/lib/categories";
 import { currentMonth, shiftMonth } from "@/lib/dates";
 import { db } from "@/lib/db";
-import { isUniqueViolation } from "@/lib/db-errors";
 import {
   DEMO_BUDGETS,
   DEMO_MONTHS_BACK,
@@ -16,50 +15,45 @@ import {
   localizeDemoNote,
 } from "@/lib/demo-data";
 
-// One shared demo account per language, so Khmer visitors see Khmer categories and notes.
-export const DEMO_ACCOUNTS: Record<Locale, { email: string; name: string }> = {
-  en: { email: "demo@financetracker.app", name: "Demo User" },
-  km: { email: "demo.km@financetracker.app", name: "អ្នកសាកល្បង" },
-};
+// Every click on "Try the demo" creates a private copy of the sample data, so one
+// visitor's changes never show up for another. Copies are deleted after a day.
+const DEMO_DOMAIN = "demo.financetracker.app";
+const DEMO_LIFETIME_MS = 24 * 60 * 60 * 1000;
+const DEMO_NAMES: Record<Locale, string> = { en: "Demo User", km: "អ្នកសាកល្បង" };
+// The shared accounts used before private copies existed
+const LEGACY_DEMO_EMAILS = ["demo@financetracker.app", "demo.km@financetracker.app"];
 
 export function isDemoEmail(email: string): boolean {
-  return Object.values(DEMO_ACCOUNTS).some((account) => account.email === email);
+  return email.endsWith(`@${DEMO_DOMAIN}`) || LEGACY_DEMO_EMAILS.includes(email);
 }
 
-/**
- * Returns the demo account's id, creating it on first use. The data is rebuilt
- * once a month so the demo always shows recent activity.
- */
-export async function ensureDemoUser(locale: Locale): Promise<string> {
-  const existing = await db.query.users.findFirst({
-    where: eq(users.email, DEMO_ACCOUNTS[locale].email),
-    columns: { id: true, createdAt: true },
-  });
-
-  if (existing && currentMonth(existing.createdAt) === currentMonth()) return existing.id;
-  return resetDemoUser(locale);
+/** Deletes demo copies older than `maxAgeMs` (cascading to their data). Returns how many. */
+export async function deleteExpiredDemoUsers(maxAgeMs = DEMO_LIFETIME_MS): Promise<number> {
+  const deleted = await db
+    .delete(users)
+    .where(
+      or(
+        and(
+          ilike(users.email, `%@${DEMO_DOMAIN}`),
+          lt(users.createdAt, new Date(Date.now() - maxAgeMs)),
+        ),
+        inArray(users.email, LEGACY_DEMO_EMAILS),
+      ),
+    )
+    .returning({ id: users.id });
+  return deleted.length;
 }
 
-/** Deletes the demo account (cascading to its data) and creates it again. */
-export async function resetDemoUser(locale: Locale): Promise<string> {
-  const { email } = DEMO_ACCOUNTS[locale];
-  await db.delete(users).where(eq(users.email, email));
-  try {
-    return await createDemoUser(locale);
-  } catch (error) {
-    // Two visitors clicked "Try demo" at the same moment; use the account the other one made.
-    if (!isUniqueViolation(error)) throw error;
-    const user = await db.query.users.findFirst({ where: eq(users.email, email) });
-    if (!user) throw error;
-    return user.id;
-  }
-}
+/** Creates a fresh, private demo account in the visitor's language and returns its id. */
+export async function createDemoUser(locale: Locale): Promise<string> {
+  // Housekeeping on the way in, so old copies never pile up
+  await deleteExpiredDemoUsers();
 
-async function createDemoUser(locale: Locale): Promise<string> {
-  // Random password: the demo account is only reachable through the demo button.
+  // Random password: a demo account is only reachable through the demo button.
   const passwordHash = await bcrypt.hash(randomUUID(), 10);
   const now = new Date();
-  const { email, name } = DEMO_ACCOUNTS[locale];
+  const email = `${randomUUID()}@${DEMO_DOMAIN}`;
+  const name = DEMO_NAMES[locale];
 
   return db.transaction(async (tx) => {
     const [user] = await tx

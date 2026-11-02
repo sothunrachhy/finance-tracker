@@ -57,7 +57,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           {LOCALES.map((option) => {
             const Flag = FLAGS[option];
             return (
-              <DropdownMenuRadioItem key={option} value={option} lang={option}>
+              <DropdownMenuRadioItem closeOnClick key={option} value={option} lang={option}>
                 <Flag className={flagClass} />
                 {LOCALE_NAMES[option]}
               </DropdownMenuRadioItem>

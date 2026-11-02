@@ -58,7 +58,12 @@ export function CategoryList({
                 </CategoryDialog>
                 <ConfirmDeleteButton
                   label={t("categories.deleteLabel", { name: category.name })}
-                  title={t("categories.deleteTitle", { name: category.name })}
+                  blocked={category.transactionCount > 0}
+                  title={
+                    category.transactionCount > 0
+                      ? t("categories.cannotDeleteTitle", { name: category.name })
+                      : t("categories.deleteTitle", { name: category.name })
+                  }
                   description={
                     category.transactionCount > 0
                       ? t("categories.deleteBlocked", { count: category.transactionCount })

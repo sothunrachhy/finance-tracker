@@ -9,6 +9,7 @@ const en = {
   },
   common: {
     cancel: "Cancel",
+    close: "Close",
     delete: "Delete",
     edit: "Edit",
     add: "Add",
@@ -63,7 +64,6 @@ const en = {
         text: "Passwords are hashed with bcrypt and sessions live in secure, httpOnly cookies.",
       },
     },
-    footer: "Built with Next.js, PostgreSQL and Drizzle ORM.",
   },
   auth: {
     loginTitle: "Log in",
@@ -199,10 +199,11 @@ const en = {
     editLabel: "Edit {name}",
     deleteLabel: "Delete {name}",
     deleteTitle: "Delete “{name}”?",
+    cannotDeleteTitle: "“{name}” can't be deleted yet",
     deleteBlocked: {
-      one: "It still has {count} transaction, so it can't be deleted until you delete or re-categorize it.",
+      one: "It still has {count} transaction. Delete it or move it to another category first.",
       other:
-        "It still has {count} transactions, so it can't be deleted until you delete or re-categorize them.",
+        "It still has {count} transactions. Delete them or move them to another category first.",
     },
     deleteWarning: "Any budgets for this category will be removed too. This can't be undone.",
     colors: {
@@ -257,7 +258,7 @@ const en = {
     title: "Settings",
     description: "Manage your profile, password and data.",
     demoNotice:
-      "You're in the shared demo account, so password changes and account deletion are turned off. Create your own account to try them.",
+      "This is your own demo copy. Changes only affect you, and it's deleted after 24 hours. Password changes and account deletion are turned off; create a real account to try them.",
     profile: "Profile",
     signedInAs: "Signed in as {email}",
     name: "Name",
@@ -315,7 +316,7 @@ const en = {
     profileSaved: "Profile saved",
     passwordChanged: "Password changed",
     wrongPassword: "Current password is incorrect",
-    demoLocked: "This isn't available in the shared demo account.",
+    demoLocked: "This isn't available in a demo account.",
   },
   validation: {
     nameRequired: "Name is required",
@@ -329,6 +330,8 @@ const en = {
     amountTooLarge: "The largest amount allowed is 10,000,000.00",
     chooseCategory: "Choose a category",
     date: "Enter a valid date",
+    dateTooEarly: "Use a date from the year 2000 onwards",
+    dateTooLate: "Use a date no more than a year from today",
     noteTooLong: "Note is too long",
     chooseType: "Choose income or expense",
     chooseColor: "Choose a color",

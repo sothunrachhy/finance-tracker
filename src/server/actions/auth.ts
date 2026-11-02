@@ -12,7 +12,7 @@ import { isUniqueViolation } from "@/lib/db-errors";
 import { fieldErrors, type FormState, formValues } from "@/lib/form-state";
 import { createSession, deleteSession } from "@/lib/session";
 import { loginSchema, registerSchema } from "@/lib/validation";
-import { ensureDemoUser } from "@/server/demo";
+import { createDemoUser } from "@/server/demo";
 
 const BCRYPT_ROUNDS = 12;
 
@@ -75,7 +75,7 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
 
 export async function loginAsDemo(): Promise<void> {
   const { locale } = await getRequestI18n();
-  const userId = await ensureDemoUser(locale);
+  const userId = await createDemoUser(locale);
   await createSession(userId);
   redirect(localePath(locale, "/dashboard"));
 }

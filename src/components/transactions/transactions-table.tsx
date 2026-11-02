@@ -49,20 +49,20 @@ export async function TransactionsTable({
               <TableCell className="text-muted-foreground hidden tabular-nums sm:table-cell">
                 {formatDate(row.date, locale)}
               </TableCell>
-              <TableCell>
+              {/* whitespace-normal: cells don't wrap by default, which cut notes off on phones */}
+              <TableCell className="whitespace-normal md:whitespace-nowrap">
                 <div className="flex items-center gap-3">
                   <CategoryIconBadge icon={row.categoryIcon} color={row.categoryColor} />
                   <div className="grid min-w-0">
                     <span className="truncate font-medium">{row.categoryName}</span>
                     {/* On small screens the date and note columns are hidden, so show them here */}
-                    <span className="text-muted-foreground truncate text-xs md:hidden">
-                      <span className="sm:hidden">{formatDate(row.date, locale)}</span>
-                      {row.note && (
-                        <>
-                          <span className="sm:hidden"> · </span>
-                          {row.note}
-                        </>
-                      )}
+                    {row.note && (
+                      <span className="text-muted-foreground line-clamp-2 text-xs break-words md:hidden">
+                        {row.note}
+                      </span>
+                    )}
+                    <span className="text-muted-foreground text-xs sm:hidden">
+                      {formatDate(row.date, locale)}
                     </span>
                   </div>
                 </div>

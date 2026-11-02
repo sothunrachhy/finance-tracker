@@ -2,6 +2,7 @@ import { ChartColumn, ShieldCheck, Target, Wallet } from "lucide-react";
 import Link from "next/link";
 import { DemoButton } from "@/components/auth/demo-button";
 import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 
 const FEATURES = [
@@ -33,6 +34,7 @@ export default function Home() {
       <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4">
         <Logo />
         <nav className="flex items-center gap-2">
+          <ThemeToggle />
           <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
             Log in
           </Link>

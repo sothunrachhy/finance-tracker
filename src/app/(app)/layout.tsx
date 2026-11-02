@@ -3,6 +3,7 @@ import { MobileNav } from "@/components/app-shell/mobile-nav";
 import { NavLinks } from "@/components/app-shell/nav-links";
 import { UserMenu } from "@/components/app-shell/user-menu";
 import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -20,6 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="bg-background/95 sticky top-0 z-10 flex h-14 items-center gap-2 border-b px-4 backdrop-blur md:px-8">
           <MobileNav />
           <div className="flex-1" />
+          <ThemeToggle />
           <Suspense fallback={<Skeleton className="size-8 rounded-full" />}>
             <CurrentUserMenu />
           </Suspense>

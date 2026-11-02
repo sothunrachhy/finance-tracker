@@ -11,6 +11,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   // Password hashing is deliberately slow, so give form submissions some headroom
   expect: { timeout: 15_000 },
+  timeout: 60_000,
   reporter: "list",
   use: {
     baseURL: `http://localhost:${PORT}`,

@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Plus } from "lucide-react";
+import { ArrowLeftRight, Download, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { EmptyState } from "@/components/empty-state";
@@ -8,6 +8,7 @@ import { Pagination } from "@/components/pagination";
 import { TransactionDialog } from "@/components/transactions/transaction-dialog";
 import { TransactionFilters } from "@/components/transactions/transaction-filters";
 import { TransactionsTable } from "@/components/transactions/transactions-table";
+import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentUser } from "@/lib/auth";
 import { todayISO } from "@/lib/dates";
@@ -49,10 +50,20 @@ async function Transactions({ searchParams }: Pick<PageProps<"/transactions">, "
           </>
         }
         actions={
-          <TransactionDialog categories={categories} today={today}>
-            <Plus aria-hidden />
-            Add transaction
-          </TransactionDialog>
+          <>
+            <a
+              href={filters.month === "all" ? "/api/export" : `/api/export?month=${filters.month}`}
+              className={buttonVariants({ variant: "outline" })}
+              download
+            >
+              <Download aria-hidden />
+              Export CSV
+            </a>
+            <TransactionDialog categories={categories} today={today}>
+              <Plus aria-hidden />
+              Add transaction
+            </TransactionDialog>
+          </>
         }
       />
 

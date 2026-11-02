@@ -22,10 +22,13 @@ const email = z
   .toLowerCase()
   .pipe(z.email(msg("validation.email")));
 
+// Not trimmed: a space can be a deliberate part of a password. But a password
+// made only of whitespace is never acceptable.
 const password = z
   .string()
   .min(8, msg("validation.passwordMin"))
-  .max(72, msg("validation.passwordMax")); // bcrypt ignores bytes past 72
+  .max(72, msg("validation.passwordMax")) // bcrypt ignores bytes past 72
+  .refine((value) => /\S/.test(value), msg("validation.passwordBlank"));
 
 const name = z
   .string()
@@ -112,6 +115,10 @@ export const changePasswordSchema = z
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: msg("validation.passwordsMismatch"),
     path: ["confirmPassword"],
+  })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    message: msg("validation.passwordUnchanged"),
+    path: ["newPassword"],
   });
 
 export { id as idSchema };

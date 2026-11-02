@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "@/components/theme-toggle";
+import { useI18n } from "@/i18n/client";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 import {
   CircleCheckIcon,
@@ -12,11 +13,13 @@ import {
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const [theme] = useTheme();
+  const { t } = useI18n();
 
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      containerAriaLabel={t("common.notifications")}
       icons={{
         success: <CircleCheckIcon className="size-4" />,
         info: <InfoIcon className="size-4" />,
@@ -33,6 +36,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         } as React.CSSProperties
       }
       toastOptions={{
+        closeButtonAriaLabel: t("common.closeNotification"),
         classNames: {
           toast: "cn-toast",
         },

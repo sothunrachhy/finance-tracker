@@ -18,6 +18,15 @@ describe("registerSchema", () => {
     expect(result).toEqual({ name: "Ada", email: "ada@example.com", password: "long-enough" });
   });
 
+  it("rejects a password made only of whitespace, but keeps meaningful spaces", () => {
+    const base = { name: "A", email: "a@b.co" };
+    expect(registerSchema.safeParse({ ...base, password: "        " }).success).toBe(false);
+    expect(registerSchema.safeParse({ ...base, password: " \t \n    " }).success).toBe(false);
+    expect(registerSchema.parse({ ...base, password: " pass phrase " }).password).toBe(
+      " pass phrase ",
+    );
+  });
+
   it("requires an 8+ character password", () => {
     const result = registerSchema.safeParse({ name: "A", email: "a@b.co", password: "short" });
     expect(result.success).toBe(false);
@@ -74,5 +83,18 @@ describe("changePasswordSchema", () => {
     });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].path).toEqual(["confirmPassword"]);
+  });
+
+  it("requires the new password to differ from the current one", () => {
+    const result = changePasswordSchema.safeParse({
+      currentPassword: "same-password",
+      newPassword: "same-password",
+      confirmPassword: "same-password",
+    });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]).toMatchObject({
+      path: ["newPassword"],
+      message: "validation.passwordUnchanged",
+    });
   });
 });

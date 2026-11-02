@@ -34,7 +34,6 @@ export function PasswordForm({ disabled }: { disabled?: boolean }) {
           name="newPassword"
           type="password"
           autoComplete="new-password"
-          hint={t("settings.passwordHint")}
           errors={errors?.newPassword}
         />
         <FormField

@@ -83,7 +83,12 @@ export async function TransactionsTable({
                 })}
               </TableCell>
               <TableCell>
-                <TransactionRowActions transaction={row} categories={categories} today={today} />
+                <TransactionRowActions
+                  transaction={row}
+                  categories={categories}
+                  today={today}
+                  currency={currency}
+                />
               </TableCell>
             </TableRow>
           ))}

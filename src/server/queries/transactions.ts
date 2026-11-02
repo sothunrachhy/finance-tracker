@@ -1,9 +1,11 @@
 import "server-only";
 import { and, count, desc, eq, gte, ilike, lt, or, sql, type SQL } from "drizzle-orm";
 import { categories, transactions } from "@/db/schema";
+import type { Locale } from "@/i18n/config";
 import { monthRange } from "@/lib/dates";
 import { db } from "@/lib/db";
 import { escapeLike, PAGE_SIZE, type TransactionFilters } from "@/lib/filters";
+import { categoryName } from "./category-name";
 
 export type TransactionRow = {
   id: string;
@@ -24,19 +26,30 @@ export function sumByType(type: "INCOME" | "EXPENSE") {
   );
 }
 
-export const transactionRowColumns = {
-  id: transactions.id,
-  amount: transactions.amount,
-  date: transactions.date,
-  note: transactions.note,
-  categoryId: categories.id,
-  categoryName: categories.name,
-  categoryType: categories.type,
-  categoryColor: categories.color,
-  categoryIcon: categories.icon,
-};
+export function transactionRowColumns(locale: Locale) {
+  return {
+    id: transactions.id,
+    amount: transactions.amount,
+    date: transactions.date,
+    note: transactions.note,
+    categoryId: categories.id,
+    categoryName: categoryName(locale),
+    categoryType: categories.type,
+    categoryColor: categories.color,
+    categoryIcon: categories.icon,
+  };
+}
 
-export async function getTransactions(userId: string, filters: TransactionFilters) {
+/**
+ * The WHERE clause for a filtered transaction list. Shared by the transactions page
+ * and the CSV export, so an export always contains exactly what the table shows.
+ * Needs `categories` joined in.
+ */
+export function transactionFilterConditions(
+  userId: string,
+  filters: Omit<TransactionFilters, "page">,
+  locale: Locale,
+) {
   // userId is always the first condition: a user can only ever see their own rows.
   const conditions: (SQL | undefined)[] = [eq(transactions.userId, userId)];
 
@@ -48,13 +61,17 @@ export async function getTransactions(userId: string, filters: TransactionFilter
   if (filters.categoryId) conditions.push(eq(transactions.categoryId, filters.categoryId));
   if (filters.q) {
     const pattern = `%${escapeLike(filters.q)}%`;
-    conditions.push(or(ilike(transactions.note, pattern), ilike(categories.name, pattern)));
+    conditions.push(or(ilike(transactions.note, pattern), ilike(categoryName(locale), pattern)));
   }
-  const where = and(...conditions);
+  return and(...conditions);
+}
+
+export async function getTransactions(userId: string, filters: TransactionFilters, locale: Locale) {
+  const where = transactionFilterConditions(userId, filters, locale);
 
   const [rows, [summary]] = await Promise.all([
     db
-      .select(transactionRowColumns)
+      .select(transactionRowColumns(locale))
       .from(transactions)
       .innerJoin(categories, eq(transactions.categoryId, categories.id))
       .where(where)

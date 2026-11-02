@@ -57,6 +57,7 @@ describe("formatMoney", () => {
     expect(formatMoney(123456, "USD", { locale: "km" })).toBe("1,234.56$");
     expect(formatMoney(-1250, "USD", { locale: "km", signDisplay: "always" })).toBe("-12.50$");
     expect(formatMoney(4000000, "KHR", { locale: "km" })).toBe("40,000.00៛");
+    expect(formatMoney(300000, "USD", { locale: "km", compact: true })).toBe("3K$");
   });
 
   it("names currencies in Khmer without relying on browser locale data", () => {

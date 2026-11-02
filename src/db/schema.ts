@@ -46,6 +46,9 @@ export const categories = pgTable(
     color: text("color").notNull(),
     // Icon key such as "utensils" (see CATEGORY_ICONS)
     icon: text("icon").notNull(),
+    // Set for starter categories (e.g. "groceries") so their name follows the app's
+    // language. Cleared when the user renames the category.
+    defaultKey: text("default_key"),
     createdAt: timestamps.createdAt,
   },
   (t) => [

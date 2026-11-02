@@ -20,9 +20,9 @@ export function MobileNav() {
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-4">
         <SheetHeader className="p-0 pb-4">
-          <SheetTitle render={<div />}>
-            <Logo href={path("/dashboard")} />
-          </SheetTitle>
+          {/* Names the panel for screen readers; the logo is shown instead */}
+          <SheetTitle className="sr-only">{t("nav.menu")}</SheetTitle>
+          <Logo href={path("/dashboard")} />
         </SheetHeader>
         <NavLinks onNavigate={() => setOpen(false)} />
       </SheetContent>

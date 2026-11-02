@@ -34,8 +34,8 @@ export default async function CategoriesPage() {
 
 async function Categories() {
   const user = await getCurrentUser();
-  const categories = await getCategoriesWithUsage(user.id);
-  const { t } = await getI18n();
+  const { locale, t } = await getI18n();
+  const categories = await getCategoriesWithUsage(user.id, locale);
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-2">

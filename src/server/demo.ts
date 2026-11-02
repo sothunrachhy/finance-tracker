@@ -4,7 +4,8 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { budgets, categories, transactions, users } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
-import { DEFAULT_CATEGORIES, defaultCategoriesFor } from "@/lib/categories";
+import { dictionaries } from "@/i18n/dictionaries";
+import { defaultCategoriesFor } from "@/lib/categories";
 import { currentMonth, shiftMonth } from "@/lib/dates";
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/db-errors";
@@ -59,7 +60,6 @@ async function createDemoUser(locale: Locale): Promise<string> {
   const passwordHash = await bcrypt.hash(randomUUID(), 10);
   const now = new Date();
   const { email, name } = DEMO_ACCOUNTS[locale];
-  const localizedCategories = defaultCategoriesFor(locale);
 
   return db.transaction(async (tx) => {
     const [user] = await tx
@@ -69,14 +69,12 @@ async function createDemoUser(locale: Locale): Promise<string> {
 
     const createdCategories = await tx
       .insert(categories)
-      .values(localizedCategories.map((category) => ({ ...category, userId: user.id })))
-      .returning({ id: categories.id, name: categories.name });
+      .values(defaultCategoriesFor(locale).map((category) => ({ ...category, userId: user.id })))
+      .returning({ id: categories.id, key: categories.defaultKey });
 
     // The demo data refers to categories by their English name
-    const englishName = new Map(
-      localizedCategories.map((c, i) => [c.name, DEFAULT_CATEGORIES[i].name]),
-    );
-    const categoryId = new Map(createdCategories.map((c) => [englishName.get(c.name), c.id]));
+    const englishNames = dictionaries.en.categoryNames as Record<string, string>;
+    const categoryId = new Map(createdCategories.map((c) => [englishNames[c.key!], c.id]));
 
     await tx.insert(transactions).values(
       generateDemoTransactions(now).map((t) => ({

@@ -90,6 +90,8 @@ function BudgetForm({
           </>
         ) : (
           <NativeSelect
+            // Remount after a failed submit so the chosen category is restored
+            key={state?.values?.categoryId}
             id="categoryId"
             name="categoryId"
             className="w-full"

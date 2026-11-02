@@ -14,7 +14,7 @@ import { localePath } from "@/i18n/config";
 import { getI18n } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
 import { todayISO } from "@/lib/dates";
-import { parseTransactionFilters } from "@/lib/filters";
+import { type TransactionFilters as Filters, parseTransactionFilters } from "@/lib/filters";
 import { formatMoney } from "@/lib/money";
 import { getCategories } from "@/server/queries/categories";
 import { getTransactions } from "@/server/queries/transactions";
@@ -41,8 +41,8 @@ async function Transactions({
   const params = await searchParams;
   const filters = parseTransactionFilters(params);
   const [categories, result] = await Promise.all([
-    getCategories(user.id),
-    getTransactions(user.id, filters),
+    getCategories(user.id, locale),
+    getTransactions(user.id, filters, locale),
   ]);
   const today = todayISO();
   const hasFilters = filters.type !== "ALL" || filters.categoryId || filters.q;
@@ -59,7 +59,7 @@ async function Transactions({
         actions={
           <>
             <a
-              href={filters.month === "all" ? "/api/export" : `/api/export?month=${filters.month}`}
+              href={exportHref(filters)}
               className={buttonVariants({ variant: "outline" })}
               download
             >
@@ -115,6 +115,15 @@ async function Transactions({
       </div>
     </>
   );
+}
+
+/** The export link carries the same filters, so the file matches the table. */
+function exportHref(filters: Filters): string {
+  const params = new URLSearchParams({ month: filters.month });
+  if (filters.type !== "ALL") params.set("type", filters.type.toLowerCase());
+  if (filters.categoryId) params.set("category", filters.categoryId);
+  if (filters.q) params.set("q", filters.q);
+  return `/api/export?${params}`;
 }
 
 function TransactionsSkeleton() {

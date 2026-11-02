@@ -41,10 +41,10 @@ async function Budgets({ searchParams }: Pick<PageProps<"/[lang]/budgets">, "sea
   const previousMonth = shiftMonth(month, -1);
 
   const [budgets, previousBudgets, categories, spending] = await Promise.all([
-    getBudgetsWithSpending(user.id, month),
-    getBudgetsWithSpending(user.id, previousMonth),
-    getCategories(user.id),
-    getSpendingByCategory(user.id, month),
+    getBudgetsWithSpending(user.id, month, locale),
+    getBudgetsWithSpending(user.id, previousMonth, locale),
+    getCategories(user.id, locale),
+    getSpendingByCategory(user.id, month, locale),
   ]);
 
   const money = (cents: number) => formatMoney(cents, user.currency, { locale });

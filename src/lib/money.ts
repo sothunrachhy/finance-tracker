@@ -79,13 +79,14 @@ export function formatMoney(
 ): string {
   const signDisplay = options.signDisplay ?? "auto";
 
-  // Khmer puts the symbol after the number ("1,234.56$"). Built by hand, see above.
-  // Compact axis labels keep the shorter English form ("$4.5K") in both languages.
-  if (options.locale === "km" && !options.compact) {
+  // Khmer puts the symbol after the number ("1,234.56$", compact "4.5K$"). Built by
+  // hand from the English number format, see above.
+  if (options.locale === "km") {
     const number = new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
       signDisplay,
+      ...(options.compact
+        ? { notation: "compact", maximumFractionDigits: 1 }
+        : { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     }).format(cents / 100);
     return `${number}${currencySymbol(currency)}`;
   }

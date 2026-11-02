@@ -66,11 +66,11 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/[lang]/dashboard">, 
   const [summary, previous, spending, trend, recent, budgets, categories] = await Promise.all([
     getMonthSummary(user.id, month),
     getMonthSummary(user.id, previousMonth),
-    getSpendingByCategory(user.id, month),
+    getSpendingByCategory(user.id, month, locale),
     getMonthlyTrend(user.id, recentMonths(month, 6)),
-    getRecentTransactions(user.id, month),
-    getBudgetsWithSpending(user.id, month),
-    getCategories(user.id),
+    getRecentTransactions(user.id, month, locale),
+    getBudgetsWithSpending(user.id, month, locale),
+    getCategories(user.id, locale),
   ]);
 
   const net = summary.income - summary.expenses;

@@ -19,8 +19,9 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    // Run Next directly (not via npm) so the server is really stopped afterwards on Windows
-    command: `node node_modules/next/dist/bin/next start -p ${PORT}`,
+    // Run Next with the exact Node binary running Playwright (not via npm or a `node`
+    // launcher shim), so stopping this process really stops the server on Windows
+    command: `"${process.execPath}" node_modules/next/dist/bin/next start -p ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

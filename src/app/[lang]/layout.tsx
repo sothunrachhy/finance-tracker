@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Kantumruy_Pro } from "next/font/google";
+import { InlineScript } from "@/components/inline-script";
 import { Toaster } from "@/components/ui/sonner";
 import { I18nProvider } from "@/i18n/client";
 import { LOCALES } from "@/i18n/config";
@@ -47,7 +48,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <InlineScript html={themeScript} />
       </head>
       <body className="flex min-h-full flex-col font-sans">
         <I18nProvider locale={locale} dictionary={dictionary}>

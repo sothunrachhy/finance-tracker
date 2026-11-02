@@ -21,13 +21,13 @@ export default async function Home() {
   return (
     <div className="flex min-h-svh flex-col">
       <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-2 px-4 py-4">
-        <Logo href={localePath(locale, "/")} />
+        <Logo href={localePath(locale, "/")} compactOnMobile />
         <nav className="flex items-center gap-1 sm:gap-2">
           <LanguageSwitcher />
           <ThemeToggle />
           <Link
             href={localePath(locale, "/login")}
-            className={buttonVariants({ variant: "ghost", className: "hidden sm:inline-flex" })}
+            className={buttonVariants({ variant: "ghost" })}
           >
             {t("landing.login")}
           </Link>

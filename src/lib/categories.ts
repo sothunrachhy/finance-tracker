@@ -1,4 +1,6 @@
 import type { Locale } from "@/i18n/config";
+import { dictionaries } from "@/i18n/dictionaries";
+import type { Dictionary } from "@/i18n/dictionaries/en";
 
 // Plain data only (no React), so validation, the database seed and tests can use it.
 // The matching icon components live in src/components/category-icon.tsx.
@@ -62,54 +64,47 @@ export const CATEGORY_ICON_NAMES = [
 
 export type CategoryIcon = (typeof CATEGORY_ICON_NAMES)[number];
 
+export type DefaultCategoryKey = keyof Dictionary["categoryNames"];
+
 type DefaultCategory = {
-  name: string;
+  key: DefaultCategoryKey;
   type: "INCOME" | "EXPENSE";
   color: CategoryColor;
   icon: CategoryIcon;
 };
 
-/** Created for every new account so the app is usable right away. */
+/**
+ * Created for every new account so the app is usable right away. Their names live
+ * in the dictionaries (categoryNames), so they show in the current language until
+ * the user renames them.
+ */
 export const DEFAULT_CATEGORIES: DefaultCategory[] = [
-  { name: "Salary", type: "INCOME", color: "green", icon: "briefcase" },
-  { name: "Freelance", type: "INCOME", color: "blue", icon: "laptop" },
-  { name: "Investments", type: "INCOME", color: "violet", icon: "trending-up" },
-  { name: "Other Income", type: "INCOME", color: "aqua", icon: "circle-dollar-sign" },
-  { name: "Housing", type: "EXPENSE", color: "blue", icon: "house" },
-  { name: "Groceries", type: "EXPENSE", color: "aqua", icon: "shopping-cart" },
-  { name: "Dining Out", type: "EXPENSE", color: "orange", icon: "utensils" },
-  { name: "Transport", type: "EXPENSE", color: "violet", icon: "car" },
-  { name: "Utilities", type: "EXPENSE", color: "yellow", icon: "zap" },
-  { name: "Subscriptions", type: "EXPENSE", color: "magenta", icon: "repeat" },
-  { name: "Health", type: "EXPENSE", color: "red", icon: "heart-pulse" },
-  { name: "Shopping", type: "EXPENSE", color: "green", icon: "shopping-bag" },
-  { name: "Entertainment", type: "EXPENSE", color: "orange", icon: "film" },
-  { name: "Other", type: "EXPENSE", color: "yellow", icon: "tag" },
+  { key: "salary", type: "INCOME", color: "green", icon: "briefcase" },
+  { key: "freelance", type: "INCOME", color: "blue", icon: "laptop" },
+  { key: "investments", type: "INCOME", color: "violet", icon: "trending-up" },
+  { key: "otherIncome", type: "INCOME", color: "aqua", icon: "circle-dollar-sign" },
+  { key: "housing", type: "EXPENSE", color: "blue", icon: "house" },
+  { key: "groceries", type: "EXPENSE", color: "aqua", icon: "shopping-cart" },
+  { key: "diningOut", type: "EXPENSE", color: "orange", icon: "utensils" },
+  { key: "transport", type: "EXPENSE", color: "violet", icon: "car" },
+  { key: "utilities", type: "EXPENSE", color: "yellow", icon: "zap" },
+  { key: "subscriptions", type: "EXPENSE", color: "magenta", icon: "repeat" },
+  { key: "health", type: "EXPENSE", color: "red", icon: "heart-pulse" },
+  { key: "shopping", type: "EXPENSE", color: "green", icon: "shopping-bag" },
+  { key: "entertainment", type: "EXPENSE", color: "orange", icon: "film" },
+  { key: "other", type: "EXPENSE", color: "yellow", icon: "tag" },
 ];
 
-/** Khmer names for the default categories, keyed by the English name. */
-const DEFAULT_CATEGORY_NAMES_KM: Record<string, string> = {
-  Salary: "ប្រាក់ខែ",
-  Freelance: "ការងារឯករាជ្យ",
-  Investments: "ការវិនិយោគ",
-  "Other Income": "ចំណូលផ្សេងៗ",
-  Housing: "លំនៅដ្ឋាន",
-  Groceries: "គ្រឿងទេស",
-  "Dining Out": "ញ៉ាំអាហារខាងក្រៅ",
-  Transport: "ការធ្វើដំណើរ",
-  Utilities: "ទឹកភ្លើង",
-  Subscriptions: "ការជាវប្រចាំ",
-  Health: "សុខភាព",
-  Shopping: "ការទិញទំនិញ",
-  Entertainment: "ការកម្សាន្ត",
-  Other: "ផ្សេងៗ",
-};
+/** A starter category's name in the given language. */
+export function defaultCategoryName(key: string, locale: Locale): string {
+  return dictionaries[locale].categoryNames[key as DefaultCategoryKey] ?? key;
+}
 
-/** Default categories named in the user's language (users can rename them later). */
-export function defaultCategoriesFor(locale: Locale): DefaultCategory[] {
-  if (locale === "en") return DEFAULT_CATEGORIES;
-  return DEFAULT_CATEGORIES.map((c) => ({
-    ...c,
-    name: DEFAULT_CATEGORY_NAMES_KM[c.name] ?? c.name,
+/** Rows to insert for a new account. `name` is stored too, as the sign-up language's name. */
+export function defaultCategoriesFor(locale: Locale) {
+  return DEFAULT_CATEGORIES.map(({ key, ...category }) => ({
+    ...category,
+    defaultKey: key,
+    name: defaultCategoryName(key, locale),
   }));
 }

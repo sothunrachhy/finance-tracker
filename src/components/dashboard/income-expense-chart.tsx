@@ -11,6 +11,7 @@ import {
 import { useI18n } from "@/i18n/client";
 import { formatMonth } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
+import { niceTicks } from "@/lib/stats";
 import type { MonthTrend } from "@/server/queries/dashboard";
 
 export function IncomeExpenseChart({ data, currency }: { data: MonthTrend[]; currency: string }) {
@@ -29,6 +30,16 @@ export function IncomeExpenseChart({ data, currency }: { data: MonthTrend[]; cur
     income: d.income / 100,
     expenses: d.expenses / 100,
   }));
+  const ticks = niceTicks(Math.max(...chartData.flatMap((d) => [d.income, d.expenses])));
+
+  // With no data the axis would show a meaningless $0–$4 scale
+  if (ticks.length === 1) {
+    return (
+      <p className="text-muted-foreground flex h-72 items-center justify-center text-center text-sm">
+        {t("dashboard.noChartData")}
+      </p>
+    );
+  }
 
   return (
     <>
@@ -39,8 +50,9 @@ export function IncomeExpenseChart({ data, currency }: { data: MonthTrend[]; cur
           <YAxis
             tickLine={false}
             axisLine={false}
-            // Khmer compact numbers ("$4.5 ពាន់") need a little more room
-            width={locale === "km" ? 72 : 56}
+            ticks={ticks}
+            domain={[0, ticks[ticks.length - 1]]}
+            width={56}
             tickFormatter={(value: number) =>
               formatMoney(value * 100, currency, { compact: true, locale })
             }

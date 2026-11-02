@@ -133,8 +133,9 @@ function TransactionForm({
       <FormField label={t("transactions.category")} name="categoryId" errors={errors?.categoryId}>
         {options.length > 0 ? (
           <NativeSelect
-            // Remount when the type changes so the selection resets
-            key={type}
+            // A <select> ignores defaultValue changes after it mounts, so remount it when
+            // the type changes (reset the choice) or after a failed submit (restore it)
+            key={`${type}:${state?.values?.categoryId ?? ""}`}
             id="categoryId"
             name="categoryId"
             className="w-full"

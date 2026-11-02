@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { budgetStatus, formatPercent, savingsRate } from "./stats";
+import { budgetStatus, formatPercent, niceTicks, savingsRate } from "./stats";
 
 describe("budgetStatus", () => {
   it.each([
@@ -22,6 +22,19 @@ describe("savingsRate", () => {
 
   it("is null without income", () => {
     expect(savingsRate(0, 100)).toBeNull();
+  });
+});
+
+describe("niceTicks", () => {
+  it("uses round steps instead of fractions like 2.3K", () => {
+    expect(niceTicks(4756)).toEqual([0, 2000, 4000, 6000]);
+    expect(niceTicks(9000)).toEqual([0, 2500, 5000, 7500, 10000]);
+    expect(niceTicks(3)).toEqual([0, 1, 2, 3]);
+    expect(niceTicks(120)).toEqual([0, 50, 100, 150]);
+  });
+
+  it("returns a single tick when there's no data", () => {
+    expect(niceTicks(0)).toEqual([0]);
   });
 });
 

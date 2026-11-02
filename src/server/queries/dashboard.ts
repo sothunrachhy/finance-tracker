@@ -1,8 +1,10 @@
 import "server-only";
 import { and, count, desc, eq, gte, lt, sql } from "drizzle-orm";
 import { categories, transactions } from "@/db/schema";
+import type { Locale } from "@/i18n/config";
 import { monthRange } from "@/lib/dates";
 import { db } from "@/lib/db";
+import { categoryName } from "./category-name";
 import { sumByType, type TransactionRow, transactionRowColumns } from "./transactions";
 
 function inRange(userId: string, start: string, end: string) {
@@ -35,6 +37,7 @@ export type CategorySpending = {
 export async function getSpendingByCategory(
   userId: string,
   month: string,
+  locale: Locale,
 ): Promise<CategorySpending[]> {
   const { start, end } = monthRange(month);
   const total = sql<number>`sum(${transactions.amount})`.mapWith(Number);
@@ -42,7 +45,7 @@ export async function getSpendingByCategory(
   return db
     .select({
       id: categories.id,
-      name: categories.name,
+      name: categoryName(locale),
       color: categories.color,
       icon: categories.icon,
       total,
@@ -80,11 +83,12 @@ export async function getMonthlyTrend(userId: string, months: string[]): Promise
 export async function getRecentTransactions(
   userId: string,
   month: string,
+  locale: Locale,
   limit = 6,
 ): Promise<TransactionRow[]> {
   const { start, end } = monthRange(month);
   const rows = await db
-    .select(transactionRowColumns)
+    .select(transactionRowColumns(locale))
     .from(transactions)
     .innerJoin(categories, eq(transactions.categoryId, categories.id))
     .where(inRange(userId, start, end))

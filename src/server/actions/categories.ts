@@ -5,6 +5,7 @@ import { refresh } from "next/cache";
 import { categories } from "@/db/schema";
 import { getRequestI18n } from "@/i18n/request";
 import { requireUserId } from "@/lib/auth";
+import { defaultCategoryName } from "@/lib/categories";
 import { db } from "@/lib/db";
 import { isForeignKeyViolation, isUniqueViolation } from "@/lib/db-errors";
 import { fieldErrors, type FormState, formValues } from "@/lib/form-state";
@@ -15,7 +16,7 @@ const FIELDS = ["name", "type", "color", "icon"] as const;
 
 export async function saveCategory(_prev: FormState, formData: FormData): Promise<FormState> {
   const userId = await requireUserId();
-  const { t } = await getRequestI18n();
+  const { locale, t } = await getRequestI18n();
   const values = formValues(formData, FIELDS);
   const id = formData.get("id");
 
@@ -27,15 +28,27 @@ export async function saveCategory(_prev: FormState, formData: FormData): Promis
       const categoryId = idSchema.safeParse(id);
       if (!categoryId.success) return { message: t("messages.categoryNotFound"), values };
 
+      const where = and(eq(categories.id, categoryId.data), eq(categories.userId, userId));
+      const existing = await db.query.categories.findFirst({
+        where,
+        columns: { name: true, defaultKey: true },
+      });
+      if (!existing) return { message: t("messages.categoryNotFound"), values };
+
+      // A starter category keeps following the app's language until the user
+      // actually changes the name they were shown.
+      const { name, color, icon } = parsed.data;
+      const shownName = existing.defaultKey
+        ? defaultCategoryName(existing.defaultKey, locale)
+        : existing.name;
+      const renamed = name !== shownName;
+
       // Type can't change after creation: it would silently flip every past
       // transaction in this category between income and expense.
-      const { name, color, icon } = parsed.data;
-      const updated = await db
+      await db
         .update(categories)
-        .set({ name, color, icon })
-        .where(and(eq(categories.id, categoryId.data), eq(categories.userId, userId)))
-        .returning({ id: categories.id });
-      if (updated.length === 0) return { message: t("messages.categoryNotFound"), values };
+        .set({ color, icon, ...(renamed && { name, defaultKey: null }) })
+        .where(where);
     } else {
       await db.insert(categories).values({ ...parsed.data, userId });
     }

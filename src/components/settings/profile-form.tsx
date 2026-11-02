@@ -35,6 +35,8 @@ export function ProfileForm({ name, currency }: { name: string; currency: string
         hint={t("settings.currencyHint")}
       >
         <NativeSelect
+          // Remount after submit so the select shows the submitted currency
+          key={state?.values?.currency}
           id="currency"
           name="currency"
           className="w-full"

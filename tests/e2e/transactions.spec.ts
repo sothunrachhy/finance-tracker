@@ -53,7 +53,7 @@ test("shows validation errors", async ({ page }) => {
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Amount").fill("12.345");
   await dialog.getByRole("button", { name: "Add transaction" }).click();
-  await expect(dialog.getByText("Enter an amount like 12.50")).toBeVisible();
+  await expect(dialog.getByText("Enter a number, like 3000 or 12.50")).toBeVisible();
   await expect(dialog.getByText("Choose a category")).toHaveCount(2); // placeholder + error
   await expect(dialog.getByLabel("Amount")).toHaveValue("12.345");
 });

@@ -1,4 +1,6 @@
-import type { ComponentProps, ReactNode } from "react";
+"use client";
+
+import { type ComponentProps, type ReactNode, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -25,10 +27,15 @@ export function FormField({
 }: FormFieldProps) {
   const id = inputProps.id ?? name;
   const errorId = `${id}-error`;
-  const hasError = Boolean(errors?.length);
+
+  // Hide the error as soon as the user edits the field. Each submit returns a new
+  // errors array, so a fresh error from the server shows again.
+  const [dismissed, setDismissed] = useState<string[]>();
+  const hasError = Boolean(errors?.length) && errors !== dismissed;
+  const dismiss = () => setDismissed(errors);
 
   return (
-    <div className={cn("grid gap-2", className)}>
+    <div className={cn("grid gap-2", className)} onInput={dismiss} onChange={dismiss}>
       <Label htmlFor={id}>{label}</Label>
       {children ?? (
         <Input

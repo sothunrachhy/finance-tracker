@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_CATEGORIES } from "./categories";
+import { dictionaries } from "@/i18n/dictionaries";
 import { DEMO_BUDGETS, generateDemoTransactions } from "./demo-data";
 
 const now = new Date("2026-11-10T09:00:00Z");
@@ -28,7 +28,7 @@ describe("generateDemoTransactions", () => {
   });
 
   it("only uses default categories and positive integer amounts", () => {
-    const names = new Set(DEFAULT_CATEGORIES.map((c) => c.name));
+    const names = new Set(Object.values(dictionaries.en.categoryNames));
     for (const t of transactions) {
       expect(names.has(t.category)).toBe(true);
       expect(Number.isInteger(t.amount) && t.amount > 0).toBe(true);

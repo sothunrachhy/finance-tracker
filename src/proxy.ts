@@ -3,7 +3,8 @@ import { isLocale, LOCALE_COOKIE, localePath, negotiateLocale, splitLocale } fro
 import { SESSION_COOKIE, verifySession } from "@/lib/jwt";
 
 const PROTECTED_PREFIXES = ["/dashboard", "/transactions", "/categories", "/budgets", "/settings"];
-const AUTH_PAGES = ["/login", "/register"];
+// Pages for signed-out visitors; signed-in users go straight to their dashboard
+const SIGNED_OUT_PAGES = ["/", "/login", "/register"];
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
 export async function proxy(request: NextRequest) {
@@ -36,7 +37,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (AUTH_PAGES.includes(path) && userId) {
+  if (SIGNED_OUT_PAGES.includes(path) && userId) {
     return NextResponse.redirect(new URL(localePath(locale, "/dashboard"), request.url));
   }
 

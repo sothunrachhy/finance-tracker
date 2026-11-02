@@ -122,6 +122,8 @@ function CategoryForm({
           </>
         ) : (
           <NativeSelect
+            // Remount after a failed submit so the chosen type is restored
+            key={values?.type}
             id="type"
             name="type"
             className="w-full"

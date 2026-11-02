@@ -1,8 +1,10 @@
 import "server-only";
 import { and, asc, eq, gte, lt, sql } from "drizzle-orm";
 import { budgets, categories, transactions } from "@/db/schema";
+import type { Locale } from "@/i18n/config";
 import { monthRange } from "@/lib/dates";
 import { db } from "@/lib/db";
+import { categoryName } from "./category-name";
 
 export type BudgetWithSpending = {
   id: string;
@@ -19,7 +21,9 @@ export type BudgetWithSpending = {
 export async function getBudgetsWithSpending(
   userId: string,
   month: string,
+  locale: Locale,
 ): Promise<BudgetWithSpending[]> {
+  const name = categoryName(locale);
   const { start, end } = monthRange(month);
 
   // Spending per category for the month, joined onto that month's budgets
@@ -43,7 +47,7 @@ export async function getBudgetsWithSpending(
     .select({
       id: budgets.id,
       categoryId: categories.id,
-      categoryName: categories.name,
+      categoryName: name,
       categoryColor: categories.color,
       categoryIcon: categories.icon,
       amount: budgets.amount,
@@ -53,5 +57,5 @@ export async function getBudgetsWithSpending(
     .innerJoin(categories, eq(budgets.categoryId, categories.id))
     .leftJoin(spending, eq(spending.categoryId, budgets.categoryId))
     .where(and(eq(budgets.userId, userId), eq(budgets.month, start)))
-    .orderBy(asc(categories.name));
+    .orderBy(asc(name));
 }

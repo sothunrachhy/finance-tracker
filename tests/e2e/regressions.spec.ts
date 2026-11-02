@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { registerNewUser } from "./helpers";
+import { registerNewUser, switchLanguage } from "./helpers";
 
 // One test per issue from the QA report, so they can't quietly come back.
 
@@ -43,9 +43,9 @@ test("switching language doesn't log a script-tag error", async ({ page }) => {
   });
 
   await page.goto("/en");
-  await page.getByRole("button", { name: "ខ្មែរ" }).click();
+  await switchLanguage(page, "ខ្មែរ");
   await expect(page).toHaveURL("/km");
-  await page.getByRole("button", { name: "English" }).click();
+  await switchLanguage(page, "English");
   await expect(page).toHaveURL("/en");
   expect(errors.filter((e) => /script tag/i.test(e))).toEqual([]);
 });

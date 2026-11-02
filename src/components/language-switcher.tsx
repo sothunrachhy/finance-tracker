@@ -1,20 +1,34 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { CambodiaFlag, UnitedKingdomFlag } from "@/components/flags";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { type Locale, LOCALE_NAMES, localePath, LOCALES, splitLocale } from "@/i18n/config";
 import { useI18n } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
 const FLAGS: Record<Locale, typeof CambodiaFlag> = { en: UnitedKingdomFlag, km: CambodiaFlag };
 
-/** Flag buttons: 🇬🇧 English, 🇰🇭 Khmer. Keeps the current page, filters and all. */
+// `!` because buttons and menu items force icons inside them to a 16px square,
+// which would squash the 3:2 flags
+const flagClass = "h-4! w-6! shrink-0 rounded-xs shadow-[0_0_0_1px_rgb(0_0_0/0.1)]";
+
+/** Shows the current language's flag; opens a menu to switch. Keeps the page and filters. */
 export function LanguageSwitcher({ className }: { className?: string }) {
   const { locale, t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
+  const CurrentFlag = FLAGS[locale];
 
   function switchTo(target: Locale) {
     if (target === locale) return;
@@ -25,38 +39,32 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   }
 
   return (
-    <div
-      role="group"
-      aria-label={t("language.label")}
-      className={cn("flex items-center gap-1", pending && "opacity-60", className)}
-    >
-      {LOCALES.map((option) => {
-        const Flag = FLAGS[option];
-        const active = option === locale;
-        return (
-          <button
-            key={option}
-            type="button"
-            lang={option}
-            onClick={() => switchTo(option)}
-            aria-pressed={active}
-            aria-label={LOCALE_NAMES[option]}
-            title={
-              active
-                ? LOCALE_NAMES[option]
-                : t("language.switchTo", { language: LOCALE_NAMES[option] })
-            }
-            className={cn(
-              "focus-visible:ring-ring flex rounded-md p-1 transition outline-none focus-visible:ring-2",
-              active
-                ? "bg-muted"
-                : "opacity-50 grayscale-[40%] hover:opacity-100 hover:grayscale-0",
-            )}
-          >
-            <Flag className="h-4 w-6 rounded-[2px] shadow-[0_0_0_1px_rgb(0_0_0/0.1)]" />
-          </button>
-        );
-      })}
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            className={cn("gap-1 px-2", pending && "opacity-60", className)}
+            aria-label={`${t("language.label")}: ${LOCALE_NAMES[locale]}`}
+          />
+        }
+      >
+        <CurrentFlag className={flagClass} />
+        <ChevronDown className="text-muted-foreground size-3.5" aria-hidden />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuRadioGroup value={locale} onValueChange={(value) => switchTo(value as Locale)}>
+          {LOCALES.map((option) => {
+            const Flag = FLAGS[option];
+            return (
+              <DropdownMenuRadioItem key={option} value={option} lang={option}>
+                <Flag className={flagClass} />
+                {LOCALE_NAMES[option]}
+              </DropdownMenuRadioItem>
+            );
+          })}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

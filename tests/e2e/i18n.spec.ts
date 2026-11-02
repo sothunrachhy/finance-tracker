@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { switchLanguage } from "./helpers";
 
 test.describe("Khmer browser", () => {
   test.use({ locale: "km-KH" }); // sends Accept-Language: km-KH
 
-  test("gets the Khmer site, and the flag switches to English and back", async ({ page }) => {
+  test("gets the Khmer site, and the flag menu switches to English and back", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveURL("/km");
     await expect(page.locator("html")).toHaveAttribute("lang", "km");
@@ -11,8 +12,11 @@ test.describe("Khmer browser", () => {
       page.getByRole("heading", { name: "ដឹងច្បាស់ថាលុយរបស់អ្នកចំណាយទៅណាខ្លះ" }),
     ).toBeVisible();
 
-    // 🇬🇧 flag -> English, and the choice is remembered on the next visit
-    await page.getByRole("button", { name: "English" }).click();
+    // Only one flag is shown: the current language's
+    await expect(page.getByRole("button", { name: "ភាសា: ខ្មែរ" })).toBeVisible();
+
+    // Pick English from the menu; the choice is remembered on the next visit
+    await switchLanguage(page, "English");
     await expect(page).toHaveURL("/en");
     await expect(
       page.getByRole("heading", { name: "Know exactly where your money goes" }),
@@ -20,11 +24,12 @@ test.describe("Khmer browser", () => {
     await page.goto("/");
     await expect(page).toHaveURL("/en");
 
-    // 🇰🇭 flag -> Khmer again
-    await page.getByRole("button", { name: "ខ្មែរ" }).click();
+    // And back to Khmer, which is now the checked option
+    await switchLanguage(page, "ខ្មែរ");
     await expect(page).toHaveURL("/km");
-    await expect(page.getByRole("button", { name: "ខ្មែរ" })).toHaveAttribute(
-      "aria-pressed",
+    await page.getByRole("button", { name: "ភាសា: ខ្មែរ" }).click();
+    await expect(page.getByRole("menuitemradio", { name: "ខ្មែរ" })).toHaveAttribute(
+      "aria-checked",
       "true",
     );
   });
@@ -75,7 +80,7 @@ test("switching language keeps the current page and filters", async ({ page }) =
   await expect(page).toHaveURL(/\/en\/dashboard$/);
 
   await page.goto("/en/transactions?month=all&type=income");
-  await page.getByRole("button", { name: "ខ្មែរ" }).click();
+  await switchLanguage(page, "ខ្មែរ");
   await expect(page).toHaveURL(/\/km\/transactions\?month=all&type=income$/);
   await expect(page.getByRole("heading", { name: "ប្រតិបត្តិការ" })).toBeVisible();
   await expect(page.getByRole("link", { name: "ផ្ទាំងគ្រប់គ្រង" })).toHaveAttribute(

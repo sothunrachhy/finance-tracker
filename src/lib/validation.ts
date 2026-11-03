@@ -121,4 +121,17 @@ export const changePasswordSchema = z
     path: ["newPassword"],
   });
 
+export const forgotPasswordSchema = z.object({ email });
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().max(200),
+    newPassword: password,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: msg("validation.passwordsMismatch"),
+    path: ["confirmPassword"],
+  });
+
 export { id as idSchema };

@@ -1,6 +1,12 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { SESSION_COOKIE, SESSION_DURATION_MS, signSession, verifySession } from "@/lib/jwt";
+import {
+  readSession,
+  SESSION_COOKIE,
+  SESSION_DURATION_MS,
+  type SessionClaims,
+  signSession,
+} from "@/lib/jwt";
 
 export async function createSession(userId: string): Promise<void> {
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
@@ -19,7 +25,8 @@ export async function deleteSession(): Promise<void> {
   (await cookies()).delete(SESSION_COOKIE);
 }
 
-export async function getSessionUserId(): Promise<string | null> {
+/** The signed session from the cookie. Use the DAL (src/lib/auth.ts) for real checks. */
+export async function getSession(): Promise<SessionClaims | null> {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  return verifySession(token);
+  return readSession(token);
 }

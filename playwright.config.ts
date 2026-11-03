@@ -1,6 +1,15 @@
 import { defineConfig, devices } from "@playwright/test";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const PORT = 3100;
+
+// The test server writes emails (password reset links) to this file instead of
+// sending them; tests read it through the same variable. Set on process.env so
+// both the server and the test workers inherit it.
+process.env.MAIL_OUTBOX ??= join(tmpdir(), "finance-tracker-e2e-mail.jsonl");
+process.env.APP_URL ??= `http://localhost:${PORT}`;
+delete process.env.RESEND_API_KEY; // never send real email from tests
 
 // End-to-end tests run against a production build (`npm run build` first) and
 // the local database from docker-compose.

@@ -15,6 +15,13 @@
       "when": 1793629125218,
       "tag": "0001_category_default_key",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793682754510,
+      "tag": "0002_password_reset",
+      "breakpoints": true
     }
   ]
 }

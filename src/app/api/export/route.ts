@@ -2,11 +2,11 @@ import { desc, eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { categories, transactions } from "@/db/schema";
 import { getRequestI18n } from "@/i18n/request";
+import { getUserIdOrNull } from "@/lib/auth";
 import { toCsv } from "@/lib/csv";
 import { db } from "@/lib/db";
 import { parseTransactionFilters } from "@/lib/filters";
 import { centsToInput } from "@/lib/money";
-import { getSessionUserId } from "@/lib/session";
 import { categoryName } from "@/server/queries/category-name";
 import { transactionFilterConditions } from "@/server/queries/transactions";
 
@@ -14,7 +14,7 @@ import { transactionFilterConditions } from "@/server/queries/transactions";
 // GET /api/export?month=2026-10&type=income&q= -> same filters as the transactions page
 export async function GET(request: NextRequest) {
   // The proxy skips /api routes, so this handler checks the session itself
-  const userId = await getSessionUserId();
+  const userId = await getUserIdOrNull();
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const { locale, t } = await getRequestI18n();

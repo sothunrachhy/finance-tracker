@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { FormField, FormMessage } from "@/components/form-field";
 import { SubmitButton } from "@/components/submit-button";
@@ -7,7 +8,7 @@ import { useI18n } from "@/i18n/client";
 import { login } from "@/server/actions/auth";
 
 export function LoginForm({ next }: { next?: string }) {
-  const { t } = useI18n();
+  const { t, path } = useI18n();
   const [state, formAction] = useActionState(login, undefined);
 
   return (
@@ -31,6 +32,12 @@ export function LoginForm({ next }: { next?: string }) {
         required
         errors={state?.fieldErrors?.password}
       />
+      <Link
+        href={path("/forgot-password")}
+        className="text-muted-foreground -mt-2 justify-self-end text-sm underline-offset-4 hover:underline"
+      >
+        {t("auth.forgotLink")}
+      </Link>
       <SubmitButton size="lg" className="w-full">
         {t("auth.loginButton")}
       </SubmitButton>

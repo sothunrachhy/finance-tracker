@@ -4,13 +4,13 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
-import { users } from "@/db/schema";
+import { passwordResetTokens, users } from "@/db/schema";
 import { localePath } from "@/i18n/config";
 import { getRequestI18n } from "@/i18n/request";
 import { requireUserId } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fieldErrors, type FormState, formValues } from "@/lib/form-state";
-import { deleteSession } from "@/lib/session";
+import { createSession, deleteSession } from "@/lib/session";
 import { changePasswordSchema, profileSchema } from "@/lib/validation";
 import type { ActionResult } from "@/server/actions/transactions";
 import { isDemoEmail } from "@/server/demo";
@@ -54,7 +54,17 @@ export async function changePassword(_prev: FormState, formData: FormData): Prom
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.newPassword, 12);
-  await db.update(users).set({ passwordHash }).where(eq(users.id, userId));
+  await db.transaction(async (tx) => {
+    // passwordChangedAt logs out every other device that was signed in
+    await tx
+      .update(users)
+      .set({ passwordHash, passwordChangedAt: new Date() })
+      .where(eq(users.id, userId));
+    // Any reset link that was emailed earlier must stop working too
+    await tx.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, userId));
+  });
+  // ...but keep this device signed in with a fresh session
+  await createSession(userId);
 
   return { ok: true, message: t("messages.passwordChanged") };
 }

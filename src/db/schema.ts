@@ -30,8 +30,26 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   // ISO 4217 code, e.g. "USD"
   currency: char("currency", { length: 3 }).notNull().default("USD"),
+  // Sessions issued before this moment are no longer valid ("log out everywhere")
+  passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }),
   ...timestamps,
 });
+
+// One-time links for "Forgot password?". Only a SHA-256 hash of the token is stored,
+// so someone who can read the database still can't use it to reset an account.
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [index("password_reset_tokens_user_id_idx").on(t.userId)],
+);
 
 export const categories = pgTable(
   "categories",

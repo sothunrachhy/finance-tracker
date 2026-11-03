@@ -44,7 +44,12 @@ const en = {
   landing: {
     login: "Log in",
     signup: "Sign up",
-    title: "Know exactly where your money goes",
+    // The heading is "titleStart" + "titleHighlight"; the highlight gets the brand gradient
+    titleStart: "Know exactly ",
+    titleHighlight: "where your money goes",
+    screenshotAlt: "The Finance Tracker dashboard with monthly totals and charts",
+    warningChip: "Warning: 80% reached",
+    encryptedChip: "Encrypted with bcrypt",
     subtitle: "Track income and expenses, set monthly budgets, and see your spending at a glance.",
     getStarted: "Get started free",
     tryDemo: "Try the demo, no sign-up",

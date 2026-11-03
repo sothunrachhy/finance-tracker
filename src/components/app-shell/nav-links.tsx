@@ -31,7 +31,7 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             aria-current={active ? "page" : undefined}
             className={cn(
               "text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-              active && "bg-muted text-foreground",
+              active && "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
             )}
           >
             <Icon className="size-4" aria-hidden />

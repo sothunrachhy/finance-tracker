@@ -62,7 +62,8 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  /* Brand teal (#0f766e): white text on it is 5.5:1 */
+  --primary: oklch(0.511 0.086 186.4);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -117,8 +118,9 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  /* Lighter teal (#2dd4bf) with dark text for the dark surface */
+  --primary: oklch(0.777 0.152 181.9);
+  --primary-foreground: oklch(0.277 0.046 192.5);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -183,5 +185,29 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* Landing and sign-in pages: soft mint-to-sky gradient with a fading dot grid */
+@layer components {
+  .marketing-backdrop {
+    background:
+      radial-gradient(60rem 40rem at 0% 0%, oklch(0.95 0.05 170 / 0.9), transparent 60%),
+      radial-gradient(50rem 40rem at 100% 30%, oklch(0.93 0.05 230 / 0.8), transparent 60%),
+      var(--background);
+  }
+  .dark .marketing-backdrop {
+    background:
+      radial-gradient(60rem 40rem at 0% 0%, oklch(0.3 0.06 180 / 0.55), transparent 60%),
+      radial-gradient(50rem 40rem at 100% 30%, oklch(0.28 0.06 240 / 0.45), transparent 60%),
+      var(--background);
+  }
+  .dot-grid {
+    background-image: radial-gradient(
+      color-mix(in oklab, var(--foreground) 14%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, black 30%, transparent 75%);
   }
 }

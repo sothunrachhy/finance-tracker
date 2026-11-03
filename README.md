@@ -116,10 +116,7 @@ npm run build && npm run test:e2e
 ## Deploying (Vercel + Neon, both free)
 
 1. **Database:** create a project at [neon.tech](https://neon.tech) and copy its **pooled** connection string.
-2. **Create the tables** from your machine, pointing at Neon:
-   ```bash
-   DATABASE_URL="<neon connection string>" npm run db:migrate
-   ```
+2. **Tables are created automatically:** on Vercel the `vercel-build` script runs the database migrations before each build, using the `DATABASE_URL` below. (To run them yourself instead: `DATABASE_URL="<neon connection string>" npm run db:migrate`.)
 3. **App:** push this repo to GitHub, then import it at [vercel.com/new](https://vercel.com/new).
 4. In the Vercel project's **Environment Variables**, add:
    - `DATABASE_URL`: the Neon connection string
@@ -128,7 +125,7 @@ npm run build && npm run test:e2e
    - `RESEND_API_KEY` and `EMAIL_FROM`: from [resend.com](https://resend.com) (free), so password reset emails are actually sent. Without them, emails are only printed in the server logs.
 5. Deploy. Each click on **Try the demo** creates a private demo copy; copies older than a day are removed automatically.
 
-For later schema changes, run `npm run db:migrate` against Neon again before deploying.
+Later schema changes are applied the same way: push, and the next deploy migrates the database first. If a migration fails, the deploy fails and the previous version stays live.
 
 ## Ideas for next steps
 

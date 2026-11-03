@@ -18,6 +18,7 @@ import dashboardKmLight from "@/assets/screenshots/dashboard-km-light.png";
 import { DemoButton } from "@/components/auth/demo-button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Logo } from "@/components/logo";
+import { MarketingBackground } from "@/components/marketing-background";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { type Locale, localePath } from "@/i18n/config";
@@ -99,7 +100,7 @@ export default async function Home() {
 
   return (
     <div className="marketing-backdrop relative flex min-h-svh flex-col overflow-hidden">
-      <div className="dot-grid pointer-events-none absolute inset-0" aria-hidden />
+      <MarketingBackground />
 
       <header className="relative mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-4 py-4">
         <Logo href={localePath(locale, "/")} compactOnMobile />

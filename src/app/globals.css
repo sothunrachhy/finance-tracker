@@ -188,20 +188,54 @@
   }
 }
 
-/* Landing and sign-in pages: soft mint-to-sky gradient with a fading dot grid */
+/* Landing and sign-in pages: soft glows that slowly drift (an "aurora") over a
+   fading dot grid. Only `transform` and `background-position` animate, so it
+   stays smooth and cheap; with "reduce motion" turned on, everything is still. */
 @layer components {
   .marketing-backdrop {
-    background:
-      radial-gradient(60rem 40rem at 0% 0%, oklch(0.95 0.05 170 / 0.9), transparent 60%),
-      radial-gradient(50rem 40rem at 100% 30%, oklch(0.93 0.05 230 / 0.8), transparent 60%),
-      var(--background);
+    background: var(--background);
   }
-  .dark .marketing-backdrop {
-    background:
-      radial-gradient(60rem 40rem at 0% 0%, oklch(0.3 0.06 180 / 0.55), transparent 60%),
-      radial-gradient(50rem 40rem at 100% 30%, oklch(0.28 0.06 240 / 0.45), transparent 60%),
-      var(--background);
+
+  .aurora {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    --glow-1: oklch(0.88 0.1 172 / 0.6); /* mint */
+    --glow-2: oklch(0.86 0.08 232 / 0.55); /* sky */
+    --glow-3: oklch(0.9 0.09 195 / 0.45); /* aqua */
   }
+  .dark .aurora {
+    --glow-1: oklch(0.42 0.09 178 / 0.5);
+    --glow-2: oklch(0.38 0.09 245 / 0.45);
+    --glow-3: oklch(0.45 0.1 195 / 0.3);
+  }
+  .aurora > span {
+    position: absolute;
+    width: 65vmax;
+    height: 65vmax;
+    border-radius: 50%;
+    will-change: transform;
+  }
+  .aurora > span:nth-child(1) {
+    top: -30vmax;
+    left: -20vmax;
+    background: radial-gradient(circle, var(--glow-1), transparent 65%);
+    animation: aurora-1 24s ease-in-out infinite alternate;
+  }
+  .aurora > span:nth-child(2) {
+    top: -15vmax;
+    right: -25vmax;
+    background: radial-gradient(circle, var(--glow-2), transparent 65%);
+    animation: aurora-2 30s ease-in-out infinite alternate;
+  }
+  .aurora > span:nth-child(3) {
+    bottom: -35vmax;
+    left: 15%;
+    background: radial-gradient(circle, var(--glow-3), transparent 65%);
+    animation: aurora-3 36s ease-in-out infinite alternate;
+  }
+
   .dot-grid {
     background-image: radial-gradient(
       color-mix(in oklab, var(--foreground) 14%, transparent) 1px,
@@ -209,5 +243,36 @@
     );
     background-size: 22px 22px;
     mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, black 30%, transparent 75%);
+    /* Moves exactly one tile per loop, so the drift is seamless */
+    animation: dot-drift 10s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* :nth-child(n) matches every glow with the same specificity as the rules above */
+    .aurora > span:nth-child(n),
+    .dot-grid {
+      animation: none;
+    }
+  }
+}
+
+@keyframes aurora-1 {
+  to {
+    transform: translate(22vmax, 12vmax) scale(1.15);
+  }
+}
+@keyframes aurora-2 {
+  to {
+    transform: translate(-20vmax, 18vmax) scale(0.9);
+  }
+}
+@keyframes aurora-3 {
+  to {
+    transform: translate(18vmax, -22vmax) scale(1.2);
+  }
+}
+@keyframes dot-drift {
+  to {
+    background-position: 22px 22px;
   }
 }

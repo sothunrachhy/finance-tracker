@@ -236,21 +236,18 @@
     animation: aurora-3 36s ease-in-out infinite alternate;
   }
 
-  .dot-grid {
-    background-image: radial-gradient(
-      color-mix(in oklab, var(--foreground) 14%, transparent) 1px,
-      transparent 1px
-    );
-    background-size: 22px 22px;
-    mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, black 30%, transparent 75%);
-    /* Moves exactly one tile per loop, so the drift is seamless */
-    animation: dot-drift 10s linear infinite;
+  /* The dot grid is drawn by <DotField> (src/components/dot-field.tsx) */
+  .dot-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
     /* :nth-child(n) matches every glow with the same specificity as the rules above */
-    .aurora > span:nth-child(n),
-    .dot-grid {
+    .aurora > span:nth-child(n) {
       animation: none;
     }
   }
@@ -269,10 +266,5 @@
 @keyframes aurora-3 {
   to {
     transform: translate(18vmax, -22vmax) scale(1.2);
-  }
-}
-@keyframes dot-drift {
-  to {
-    background-position: 22px 22px;
   }
 }

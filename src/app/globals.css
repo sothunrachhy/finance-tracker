@@ -188,9 +188,9 @@
   }
 }
 
-/* Landing and sign-in pages: soft glows that slowly drift (an "aurora") over a
-   fading dot grid. Only `transform` and `background-position` animate, so it
-   stays smooth and cheap; with "reduce motion" turned on, everything is still. */
+/* Landing and sign-in pages: soft glows that slowly drift (an "aurora"). Only
+   `transform` animates, so it stays smooth and cheap; with "reduce motion"
+   turned on, it's still. */
 @layer components {
   .marketing-backdrop {
     background: var(--background);
@@ -234,15 +234,6 @@
     left: 15%;
     background: radial-gradient(circle, var(--glow-3), transparent 65%);
     animation: aurora-3 36s ease-in-out infinite alternate;
-  }
-
-  /* The dot grid is drawn by <DotField> (src/components/dot-field.tsx) */
-  .dot-canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
   }
 
   @media (prefers-reduced-motion: reduce) {

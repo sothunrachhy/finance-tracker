@@ -23,7 +23,14 @@ const FLAGS: Record<Locale, typeof CambodiaFlag> = { en: UnitedKingdomFlag, km: 
 const flagClass = "h-4! w-6! shrink-0 rounded-xs shadow-[0_0_0_1px_rgb(0_0_0/0.1)]";
 
 /** Shows the current language's flag; opens a menu to switch. Keeps the page and filters. */
-export function LanguageSwitcher({ className }: { className?: string }) {
+export function LanguageSwitcher({
+  className,
+  showName = false,
+}: {
+  className?: string;
+  /** Also show the language's name next to the flag (from the sm breakpoint up) */
+  showName?: boolean;
+}) {
   const { locale, t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
@@ -50,6 +57,11 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         }
       >
         <CurrentFlag className={flagClass} />
+        {showName && (
+          <span className="hidden pl-0.5 sm:inline" lang={locale}>
+            {LOCALE_NAMES[locale]}
+          </span>
+        )}
         <ChevronDown className="text-muted-foreground size-3.5" aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">

@@ -1,18 +1,29 @@
 "use client";
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import {
-  type ChartConfig,
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-} from "@/components/ui/chart";
+import { type ChartConfig, ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { useI18n } from "@/i18n/client";
 import { formatMonth } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { niceTicks } from "@/lib/stats";
 import type { MonthTrend } from "@/server/queries/dashboard";
+
+/** The chart's legend, small enough for the card header. Same colors as the bars. */
+export function ChartLegendKey() {
+  const { t } = useI18n();
+  return (
+    <ul className="text-muted-foreground flex items-center gap-4 text-xs font-medium" aria-hidden>
+      <li className="flex items-center gap-1.5">
+        <span className="bg-series-1 size-2.5 rounded-full" />
+        {t("dashboard.income")}
+      </li>
+      <li className="flex items-center gap-1.5">
+        <span className="bg-series-2 size-2.5 rounded-full" />
+        {t("dashboard.expenses")}
+      </li>
+    </ul>
+  );
+}
 
 export function IncomeExpenseChart({ data, currency }: { data: MonthTrend[]; currency: string }) {
   const { locale, t } = useI18n();
@@ -44,8 +55,17 @@ export function IncomeExpenseChart({ data, currency }: { data: MonthTrend[]; cur
   return (
     <>
       <ChartContainer config={chartConfig} className="aspect-auto h-72 w-full" aria-hidden>
-        <BarChart data={chartData} barGap={2} margin={{ left: 0, right: 0, top: 8 }}>
-          <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
+        <BarChart data={chartData} barGap={6} margin={{ left: 0, right: 0, top: 8 }}>
+          {/* Each bar fades from its full color at the top to a lighter tint */}
+          <defs>
+            {(["income", "expenses"] as const).map((key) => (
+              <linearGradient key={key} id={`fill-${key}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" style={{ stopColor: `var(--color-${key})` }} />
+                <stop offset="1" style={{ stopColor: `var(--color-${key})`, stopOpacity: 0.55 }} />
+              </linearGradient>
+            ))}
+          </defs>
+          <CartesianGrid vertical={false} stroke="var(--chart-grid)" strokeDasharray="4 4" />
           <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
           <YAxis
             tickLine={false}
@@ -81,14 +101,13 @@ export function IncomeExpenseChart({ data, currency }: { data: MonthTrend[]; cur
               ) : null
             }
           />
-          {/* itemSorter={null} keeps legend order = bar order (default sorts A-Z) */}
-          <ChartLegend content={<ChartLegendContent />} itemSorter={null} />
-          <Bar dataKey="income" fill="var(--color-income)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+          {/* The legend is in the card header (see ChartLegendKey) */}
+          <Bar dataKey="income" fill="url(#fill-income)" radius={[8, 8, 0, 0]} maxBarSize={32} />
           <Bar
             dataKey="expenses"
-            fill="var(--color-expenses)"
-            radius={[4, 4, 0, 0]}
-            maxBarSize={28}
+            fill="url(#fill-expenses)"
+            radius={[8, 8, 0, 0]}
+            maxBarSize={32}
           />
         </BarChart>
       </ChartContainer>

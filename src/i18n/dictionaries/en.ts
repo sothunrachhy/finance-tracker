@@ -40,36 +40,150 @@ const en = {
     menu: "Menu",
     accountMenu: "Account menu",
     logout: "Log out",
+    search: "Find a transaction",
+    searchPlaceholder: "Search transactions…",
+    exportTitle: "Monthly report",
+    exportText: "A PDF statement of the month you're viewing.",
+    exportButton: "Download PDF",
   },
   landing: {
     login: "Log in",
     signup: "Sign up",
-    // The heading is "titleStart" + "titleHighlight"; the highlight gets the brand gradient
-    titleStart: "Know exactly ",
-    titleHighlight: "where your money goes",
-    screenshotAlt: "The Finance Tracker dashboard with monthly totals and charts",
-    warningChip: "Warning: 80% reached",
-    encryptedChip: "Encrypted with bcrypt",
+    sections: "Page sections",
+    nav: {
+      home: "Home",
+      features: "Features",
+      pricing: "Pricing",
+      about: "About",
+      faq: "FAQ",
+    },
+    eyebrow: "Smarter spending. Brighter future.",
+    // Words between asterisks get the brand gradient
+    title: "Know exactly *where* your *money* goes",
     subtitle: "Track income and expenses, set monthly budgets, and see your spending at a glance.",
+    screenshotAlt: "The Finance Tracker dashboard with monthly totals and charts",
     getStarted: "Get started free",
-    tryDemo: "Try the demo, no sign-up",
+    tryDemo: "Try the demo",
+    freeNote: "*100% free*, no credit card needed",
     features: {
+      label: "Key features",
+      heading: "Powerful features to take control of your finances",
+      intro: "Everything you need to manage your money smarter, not harder.",
+      cardLink: "{title}: get started free",
       track: {
         title: "Track every transaction",
         text: "Log income and expenses in seconds, then search and filter by month or category.",
       },
-      insights: {
-        title: "See where it goes",
-        text: "Your dashboard ranks spending by category and compares income to expenses over time.",
-      },
       budgets: {
-        title: "Stay on budget",
-        text: "Set monthly limits per category and get a warning before you go over.",
+        title: "Set budgets",
+        text: "Create monthly budgets per category and get a warning when you're close to the limit.",
       },
-      privacy: {
-        title: "Private by design",
-        text: "Passwords are hashed with bcrypt and sessions live in secure, httpOnly cookies.",
+      insights: {
+        title: "Visualize your spending",
+        text: "Clear charts and insights that help you understand your habits.",
       },
+      export: {
+        title: "Export anytime",
+        text: "Download one month or your whole history as a CSV for any spreadsheet.",
+      },
+      sync: {
+        title: "Sync across devices",
+        text: "Access your finances anytime, anywhere, on your phone or computer.",
+      },
+      security: {
+        title: "Your data is secure",
+        text: "Passwords are hashed with bcrypt, and only you can see your data.",
+      },
+    },
+    pricing: {
+      label: "Pricing",
+      heading: "Simple, transparent pricing",
+      intro: "Everything is free. Choose how you want to start.",
+      recommended: "Recommended",
+      price: "$0",
+      demo: {
+        name: "Demo",
+        description: "Look around with sample data first.",
+        period: "no sign-up",
+        features: {
+          data: "Six months of sample data",
+          all: "Every feature unlocked",
+          expiry: "Deleted after 24 hours",
+        },
+        cta: "Open the demo",
+      },
+      personal: {
+        name: "Personal",
+        description: "Your own private account.",
+        period: "/ month",
+        features: {
+          unlimited: "Unlimited transactions",
+          budgets: "Budgets with 80% and 100% warnings",
+          charts: "Charts and 6-month trends",
+          export: "CSV export",
+          sync: "Sync across all your devices",
+        },
+        cta: "Create free account",
+      },
+    },
+    about: {
+      label: "About",
+      heading: "Built with care for the details",
+      text: "Finance Tracker is a small, focused app for personal spending. It does a few things and does them carefully, because with money, small mistakes add up.",
+      cents: {
+        title: "Accurate to the cent",
+        text: "Amounts are stored as whole cents, so totals never drift from rounding errors.",
+      },
+      languages: {
+        title: "English and Khmer",
+        text: "Switch anytime. Dates, money and starter categories follow your language.",
+      },
+      accessible: {
+        title: "Readable for everyone",
+        text: "Colorblind-safe charts, full keyboard support and labels for screen readers.",
+      },
+    },
+    faq: {
+      label: "FAQ",
+      heading: "Frequently asked questions",
+      items: {
+        free: {
+          q: "Is Finance Tracker really free?",
+          a: "Yes. Every feature is free and there is no paid plan, so you never need a credit card.",
+        },
+        demo: {
+          q: "Can I try it before signing up?",
+          a: "Yes. The demo opens a private account filled with six months of sample data. It's deleted automatically after 24 hours.",
+        },
+        security: {
+          q: "How is my data protected?",
+          a: "Your password is hashed with bcrypt and never stored as plain text. You stay signed in with a secure, httpOnly cookie, and every page only ever shows your own data.",
+        },
+        export: {
+          q: "Can I take my data with me?",
+          a: "Yes. Export one month or your whole history as a CSV file that opens in Excel, Google Sheets or Numbers.",
+        },
+        delete: {
+          q: "Can I delete my account?",
+          a: "Yes, from Settings. Deleting your account permanently removes it along with all your transactions, categories and budgets.",
+        },
+      },
+    },
+    cta: {
+      heading: "Ready to take control of your finances?",
+      text: "Create your free account in under a minute. No credit card needed.",
+    },
+    footer: {
+      tagline: "Track. Plan. Grow.",
+      product: "Product",
+      account: "Account",
+      language: "Language",
+      createAccount: "Create account",
+      resetPassword: "Reset password",
+      source: "Source code on GitHub",
+      // {year} is filled in when the page is built
+      copyright: "© {year} Finance Tracker. All rights reserved.",
+      madeWith: "Built with ❤️ for a better financial future.",
     },
   },
   auth: {
@@ -153,6 +267,10 @@ const en = {
     setOne: "Set one",
     allOnTrack: { one: "Your budget is on track.", other: "All {count} budgets are on track." },
     spentOf: "{spent} of {limit}",
+    // e.g. "+12% vs Oct"
+    vsMonth: "{change} vs {month}",
+    // Change in a percentage, in percentage points
+    points: "{value} pts",
   },
   monthPicker: {
     previous: "Previous month",
@@ -395,6 +513,16 @@ const en = {
     shopping: "Shopping",
     entertainment: "Entertainment",
     other: "Other",
+  },
+  report: {
+    title: "Monthly statement",
+    preparedFor: "Prepared for {name}",
+    generated: "Generated {date}",
+    budgets: "Budgets",
+    transactions: "Transactions",
+    count: { one: "1 transaction", other: "{count} transactions" },
+    description: "Description",
+    page: "Page {page} of {total}",
   },
   csv: {
     date: "Date",

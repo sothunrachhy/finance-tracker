@@ -25,22 +25,30 @@ export function MonthPicker({ month, allowAll = false }: { month: string; allowA
   }
 
   return (
-    <div className={cn("flex items-center gap-1", pending && "opacity-60")} aria-busy={pending}>
+    <div
+      className={cn(
+        "flex items-center gap-1 rounded-full border border-slate-200/80 bg-white/80 p-1 shadow-sm dark:border-white/10 dark:bg-white/5",
+        pending && "opacity-60",
+      )}
+      aria-busy={pending}
+    >
       <Button
-        variant="outline"
+        variant="ghost"
         size="icon"
+        className="rounded-full"
         disabled={isAll}
         onClick={() => go(shiftMonth(month, -1))}
         aria-label={t("monthPicker.previous")}
       >
         <ChevronLeft />
       </Button>
-      <span className="min-w-36 text-center text-sm font-medium tabular-nums" aria-live="polite">
+      <span className="min-w-32 text-center text-sm font-semibold tabular-nums" aria-live="polite">
         {isAll ? t("monthPicker.allTime") : formatMonth(month, "long", locale)}
       </span>
       <Button
-        variant="outline"
+        variant="ghost"
         size="icon"
+        className="rounded-full"
         disabled={isAll}
         onClick={() => go(shiftMonth(month, 1))}
         aria-label={t("monthPicker.next")}
@@ -48,7 +56,11 @@ export function MonthPicker({ month, allowAll = false }: { month: string; allowA
         <ChevronRight />
       </Button>
       {allowAll && (
-        <Button variant="ghost" onClick={() => go(isAll ? currentMonth() : "all")}>
+        <Button
+          variant="ghost"
+          className="rounded-full"
+          onClick={() => go(isAll ? currentMonth() : "all")}
+        >
           {isAll ? t("monthPicker.byMonth") : t("monthPicker.allTime")}
         </Button>
       )}

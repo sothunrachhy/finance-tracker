@@ -65,7 +65,7 @@ test("Khmer pages render the same in the browser as on the server", async ({ pag
   });
 
   await page.goto("/km");
-  await page.locator("main form button[type=submit]").click(); // demo button
+  await page.getByRole("button", { name: "សាកល្បងគណនីគំរូ" }).click(); // "Try the demo"
   await expect(page).toHaveURL(/\/km\/dashboard$/);
   await page.goto("/km/dashboard?month=2026-10");
   // The month picker is a Client Component, so it's formatted again in the browser

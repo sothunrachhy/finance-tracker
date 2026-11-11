@@ -46,6 +46,12 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Landing page palette (mint, sky and teal accents around a near-white page) */
+  --color-landing: var(--landing);
+  --color-landing-ink: var(--landing-ink);
+  --color-mint: var(--mint);
+  --color-sky-tint: var(--sky-tint);
+  --color-brand-teal: var(--brand-teal);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -109,9 +115,22 @@
 
   --chart-grid: #e1e0d9;
   --chart-axis: #898781;
+
+  /* Landing page. Brand teal is decorative only: 2.3:1 on white, too light for text. */
+  --landing: #f7fffc;
+  --landing-ink: #172b35;
+  --mint: #c9f8e9;
+  --sky-tint: #ddf5ff;
+  --brand-teal: #00bfa5;
 }
 
 .dark {
+  --landing: #08171a;
+  --landing-ink: #e6f4f1;
+  --mint: #123b3a;
+  --sky-tint: #0e2a36;
+  --brand-teal: #2dd4bf;
+
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -257,5 +276,37 @@
 @keyframes aurora-3 {
   to {
     transform: translate(18vmax, -22vmax) scale(1.2);
+  }
+}
+
+/* Landing page: frosted "glass" cards and slowly floating decorations */
+@layer components {
+  .landing-card {
+    border: 1px solid rgb(226 240 236 / 0.95);
+    background: rgb(255 255 255 / 0.92);
+    box-shadow:
+      0 1px 3px rgb(23 43 53 / 0.05),
+      0 18px 40px -16px rgb(13 94 84 / 0.2);
+    backdrop-filter: blur(16px);
+  }
+  .dark .landing-card {
+    border-color: rgb(255 255 255 / 0.08);
+    background: rgb(255 255 255 / 0.04);
+    box-shadow: 0 16px 40px -18px rgb(0 0 0 / 0.6);
+  }
+
+  .landing-float {
+    animation: landing-float 7s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .landing-float {
+      animation: none;
+    }
+  }
+}
+
+@keyframes landing-float {
+  50% {
+    transform: translateY(-10px);
   }
 }

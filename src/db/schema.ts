@@ -1,10 +1,10 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  bigint,
   char,
   check,
   date,
   index,
-  integer,
   pgEnum,
   pgTable,
   text,
@@ -87,8 +87,9 @@ export const transactions = pgTable(
     categoryId: uuid("category_id")
       .notNull()
       .references(() => categories.id, { onDelete: "restrict" }),
-    // Always positive, in the smallest currency unit (cents) to avoid float errors
-    amount: integer("amount").notNull(),
+    // Always positive, in the smallest currency unit (cents) to avoid float errors.
+    // bigint: a large riel amount (up to 1,000,000,000៛) doesn't fit a 32-bit integer.
+    amount: bigint("amount", { mode: "number" }).notNull(),
     // "YYYY-MM-DD" string, so no timezone shifts between server and browser
     date: date("date", { mode: "string" }).notNull(),
     note: text("note"),
@@ -113,8 +114,8 @@ export const budgets = pgTable(
       .references(() => categories.id, { onDelete: "cascade" }),
     // First day of the month this budget applies to
     month: date("month", { mode: "string" }).notNull(),
-    // Spending limit in cents
-    amount: integer("amount").notNull(),
+    // Spending limit in cents (bigint for the same reason as transactions.amount)
+    amount: bigint("amount", { mode: "number" }).notNull(),
     ...timestamps,
   },
   (t) => [

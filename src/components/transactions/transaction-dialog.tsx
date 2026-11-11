@@ -19,7 +19,7 @@ import {
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { FormState } from "@/lib/form-state";
 import { MIN_TRANSACTION_DATE, maxTransactionDate } from "@/lib/dates";
-import { centsToInput } from "@/lib/money";
+import { centsToInput, currencyDecimals } from "@/lib/money";
 import { useI18n } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { saveTransaction } from "@/server/actions/transactions";
@@ -29,6 +29,8 @@ import type { TransactionRow } from "@/server/queries/transactions";
 type TransactionDialogProps = {
   categories: CategoryOption[];
   today: string;
+  /** The user's currency: riel is entered in whole numbers */
+  currency: string;
   /** Pass an existing transaction to edit it; omit to add a new one. */
   transaction?: TransactionRow;
   triggerProps?: ComponentProps<typeof Button>;
@@ -38,6 +40,7 @@ type TransactionDialogProps = {
 export function TransactionDialog({
   categories,
   today,
+  currency,
   transaction,
   triggerProps,
   children,
@@ -62,6 +65,7 @@ export function TransactionDialog({
           <TransactionForm
             categories={categories}
             today={today}
+            currency={currency}
             transaction={transaction}
             onSaved={() => setOpen(false)}
           />
@@ -74,127 +78,138 @@ export function TransactionDialog({
 function TransactionForm({
   categories,
   today,
+  currency,
   transaction,
   onSaved,
 }: Omit<TransactionDialogProps, "triggerProps" | "children"> & { onSaved: () => void }) {
   const { t, path } = useI18n();
+  const decimals = currencyDecimals(currency);
   const [type, setType] = useState<"EXPENSE" | "INCOME">(transaction?.categoryType ?? "EXPENSE");
-  const [state, formAction] = useActionState(async (prev: FormState, formData: FormData) => {
-    const result = await saveTransaction(prev, formData);
-    if (result?.ok) {
-      toast.success(result.message);
-      onSaved();
-    }
-    return result;
-  }, undefined);
+  const [state, formAction, pending] = useActionState(
+    async (prev: FormState, formData: FormData) => {
+      const result = await saveTransaction(prev, formData);
+      if (result?.ok) {
+        toast.success(result.message);
+        onSaved();
+      }
+      return result;
+    },
+    undefined,
+  );
 
   const options = categories.filter((c) => c.type === type);
   const errors = state?.fieldErrors;
 
   return (
-    <form action={formAction} className="grid gap-4" noValidate>
-      <FormMessage message={state?.ok ? undefined : state?.message} />
-      {transaction && <input type="hidden" name="id" value={transaction.id} />}
+    <form action={formAction} noValidate>
+      {/* Disabled while saving: React resets the form when the action returns, which
+          would wipe anything typed in the meantime */}
+      <fieldset disabled={pending} className="grid gap-4">
+        <FormMessage message={state?.ok ? undefined : state?.message} />
+        {transaction && <input type="hidden" name="id" value={transaction.id} />}
 
-      <div
-        className="bg-muted grid grid-cols-2 gap-1 rounded-lg p-1"
-        role="group"
-        aria-label={t("transactions.type")}
-      >
-        {(["EXPENSE", "INCOME"] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setType(value)}
-            aria-pressed={type === value}
-            className={cn(
-              "rounded-md py-1.5 text-sm font-medium transition-colors",
-              type === value
-                ? "bg-background shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {value === "EXPENSE" ? t("transactions.expense") : t("transactions.income")}
-          </button>
-        ))}
-      </div>
-
-      <FormField
-        label={t("transactions.amount")}
-        name="amount"
-        inputMode="decimal"
-        placeholder="0.00"
-        autoFocus
-        defaultValue={
-          state?.values?.amount ?? (transaction ? centsToInput(transaction.amount) : "")
-        }
-        errors={errors?.amount}
-      />
-
-      <FormField label={t("transactions.category")} name="categoryId" errors={errors?.categoryId}>
-        {({ invalid }) =>
-          options.length > 0 ? (
-            <NativeSelect
-              // A <select> ignores defaultValue changes after it mounts, so remount it when
-              // the type changes (reset the choice) or after a failed submit (restore it)
-              key={`${type}:${state?.values?.categoryId ?? ""}`}
-              id="categoryId"
-              name="categoryId"
-              className="w-full"
-              defaultValue={
-                state?.values?.categoryId ??
-                (transaction?.categoryType === type ? transaction.categoryId : "")
-              }
-              aria-invalid={invalid || undefined}
+        <div
+          className="bg-muted grid grid-cols-2 gap-1 rounded-lg p-1"
+          role="group"
+          aria-label={t("transactions.type")}
+        >
+          {(["EXPENSE", "INCOME"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setType(value)}
+              aria-pressed={type === value}
+              className={cn(
+                "rounded-md py-1.5 text-sm font-medium transition-colors",
+                type === value
+                  ? "bg-background shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
             >
-              <NativeSelectOption value="" disabled>
-                {t("transactions.chooseCategory")}
-              </NativeSelectOption>
-              {options.map((category) => (
-                <NativeSelectOption key={category.id} value={category.id}>
-                  {category.name}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          ) : (
-            <p className="text-muted-foreground text-sm">
-              {type === "EXPENSE"
-                ? t("transactions.noExpenseCategories")
-                : t("transactions.noIncomeCategories")}{" "}
-              <Link
-                href={path("/categories")}
-                className="text-foreground underline underline-offset-4"
+              {value === "EXPENSE" ? t("transactions.expense") : t("transactions.income")}
+            </button>
+          ))}
+        </div>
+
+        <FormField
+          label={t("transactions.amount")}
+          name="amount"
+          inputMode={decimals === 0 ? "numeric" : "decimal"}
+          placeholder={decimals === 0 ? "0" : "0.00"}
+          autoFocus
+          defaultValue={
+            state?.values?.amount ?? (transaction ? centsToInput(transaction.amount, decimals) : "")
+          }
+          errors={errors?.amount}
+        />
+
+        <FormField label={t("transactions.category")} name="categoryId" errors={errors?.categoryId}>
+          {({ invalid }) =>
+            options.length > 0 ? (
+              <NativeSelect
+                // A <select> ignores defaultValue changes after it mounts, so remount it when
+                // the type changes (reset the choice) or after a failed submit (restore it)
+                key={`${type}:${state?.values?.categoryId ?? ""}`}
+                id="categoryId"
+                name="categoryId"
+                className="w-full"
+                defaultValue={
+                  state?.values?.categoryId ??
+                  (transaction?.categoryType === type ? transaction.categoryId : "")
+                }
+                aria-invalid={invalid || undefined}
               >
-                {t("transactions.createOne")}
-              </Link>
-            </p>
-          )
-        }
-      </FormField>
+                <NativeSelectOption value="" disabled>
+                  {t("transactions.chooseCategory")}
+                </NativeSelectOption>
+                {options.map((category) => (
+                  <NativeSelectOption key={category.id} value={category.id}>
+                    {category.name}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            ) : (
+              <p className="text-muted-foreground text-sm">
+                {type === "EXPENSE"
+                  ? t("transactions.noExpenseCategories")
+                  : t("transactions.noIncomeCategories")}{" "}
+                <Link
+                  href={path("/categories")}
+                  className="text-foreground underline underline-offset-4"
+                >
+                  {t("transactions.createOne")}
+                </Link>
+              </p>
+            )
+          }
+        </FormField>
 
-      <FormField
-        label={t("transactions.date")}
-        name="date"
-        type="date"
-        min={MIN_TRANSACTION_DATE}
-        max={maxTransactionDate(new Date(`${today}T00:00:00Z`))}
-        defaultValue={state?.values?.date ?? transaction?.date ?? today}
-        errors={errors?.date}
-      />
+        <FormField
+          label={t("transactions.date")}
+          name="date"
+          type="date"
+          min={MIN_TRANSACTION_DATE}
+          max={maxTransactionDate(new Date(`${today}T00:00:00Z`))}
+          defaultValue={state?.values?.date ?? transaction?.date ?? today}
+          errors={errors?.date}
+        />
 
-      <FormField
-        label={t("transactions.note")}
-        name="note"
-        placeholder={t("transactions.notePlaceholder")}
-        maxLength={200}
-        defaultValue={state?.values?.note ?? transaction?.note ?? ""}
-        errors={errors?.note}
-      />
+        <FormField
+          label={t("transactions.note")}
+          name="note"
+          placeholder={t("transactions.notePlaceholder")}
+          maxLength={200}
+          defaultValue={state?.values?.note ?? transaction?.note ?? ""}
+          errors={errors?.note}
+        />
 
-      <DialogFooter>
-        <DialogClose render={<Button variant="outline" />}>{t("common.cancel")}</DialogClose>
-        <SubmitButton>{transaction ? t("common.saveChanges") : t("transactions.add")}</SubmitButton>
-      </DialogFooter>
+        <DialogFooter>
+          <DialogClose render={<Button variant="outline" />}>{t("common.cancel")}</DialogClose>
+          <SubmitButton>
+            {transaction ? t("common.saveChanges") : t("transactions.add")}
+          </SubmitButton>
+        </DialogFooter>
+      </fieldset>
     </form>
   );
 }

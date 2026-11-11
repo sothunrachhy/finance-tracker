@@ -1,10 +1,10 @@
 import "server-only";
-import { and, asc, eq, gte, lt, sql } from "drizzle-orm";
+import { and, eq, gte, lt, sql } from "drizzle-orm";
 import { budgets, categories, transactions } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
 import { monthRange } from "@/lib/dates";
 import { db } from "@/lib/db";
-import { categoryName } from "./category-name";
+import { alphabetical, categoryName } from "./category-name";
 
 export type BudgetWithSpending = {
   id: string;
@@ -57,5 +57,5 @@ export async function getBudgetsWithSpending(
     .innerJoin(categories, eq(budgets.categoryId, categories.id))
     .leftJoin(spending, eq(spending.categoryId, budgets.categoryId))
     .where(and(eq(budgets.userId, userId), eq(budgets.month, start)))
-    .orderBy(asc(name));
+    .orderBy(...alphabetical(name));
 }

@@ -36,6 +36,18 @@ export function maxTransactionDate(now: Date = new Date()): string {
   return toISODate(date);
 }
 
+/** The months there can be transactions in: 2000-01 up to a year from now. */
+export function monthBounds(now: Date = new Date()): { min: string; max: string } {
+  return { min: MIN_TRANSACTION_DATE.slice(0, 7), max: maxTransactionDate(now).slice(0, 7) };
+}
+
+/** A well-formed month inside monthBounds, e.g. for a ?month= value from the URL. */
+export function isMonthInRange(value: unknown, now: Date = new Date()): value is string {
+  if (!isValidMonth(value)) return false;
+  const { min, max } = monthBounds(now);
+  return value >= min && value <= max;
+}
+
 export function todayISO(now: Date = new Date()): string {
   return toISODate(now);
 }

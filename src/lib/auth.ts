@@ -51,13 +51,23 @@ export async function getCurrentUser(): Promise<CurrentUser> {
 }
 
 /** For Server Actions, which must re-check auth on every call. */
-export async function requireUserId(): Promise<string> {
+export async function requireUser(): Promise<CurrentUser> {
   const check = await checkSession();
   if (!check.user) redirectAway(check.reason);
-  return check.user.id;
+  return check.user;
+}
+
+/** For Server Actions that only need the user's id. */
+export async function requireUserId(): Promise<string> {
+  return (await requireUser()).id;
 }
 
 /** For Route Handlers, which answer 401 instead of redirecting. */
+export async function getUserOrNull(): Promise<CurrentUser | null> {
+  return (await checkSession()).user;
+}
+
+/** For Route Handlers that only need the user's id. */
 export async function getUserIdOrNull(): Promise<string | null> {
-  return (await checkSession()).user?.id ?? null;
+  return (await getUserOrNull())?.id ?? null;
 }

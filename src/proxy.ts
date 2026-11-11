@@ -19,7 +19,7 @@ export async function proxy(request: NextRequest) {
       ? saved
       : negotiateLocale(request.headers.get("accept-language"));
     const url = request.nextUrl.clone();
-    url.pathname = localePath(preferred, pathname);
+    url.pathname = localePath(preferred, withoutForeignLocale(pathname));
     return NextResponse.redirect(url);
   }
 
@@ -48,6 +48,15 @@ export async function proxy(request: NextRequest) {
     response.cookies.set(LOCALE_COOKIE, locale, { path: "/", maxAge: ONE_YEAR, sameSite: "lax" });
   }
   return response;
+}
+
+// A language we don't offer, like /fr or /zh-CN/budgets. No app path is this short.
+const LANGUAGE_TAG = /^[a-z]{2,3}(-[a-z0-9]{2,8})*$/i;
+
+/** "/fr/budgets" -> "/budgets", so it lands on a real page instead of /km/fr/budgets (404). */
+function withoutForeignLocale(pathname: string): string {
+  const [, first, ...rest] = pathname.split("/");
+  return LANGUAGE_TAG.test(first) ? `/${rest.join("/")}` : pathname;
 }
 
 export const config = {

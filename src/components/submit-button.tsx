@@ -6,12 +6,20 @@ import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 
 /** A submit button that disables itself and shows a spinner while its form is pending. */
-export function SubmitButton({ children, disabled, ...props }: ComponentProps<typeof Button>) {
+export function SubmitButton({
+  children,
+  disabled,
+  pendingLabel,
+  ...props
+}: ComponentProps<typeof Button> & {
+  /** Shown instead of the label while pending, for actions slow enough to need an explanation */
+  pendingLabel?: string;
+}) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending || disabled} aria-busy={pending} {...props}>
       {pending && <Loader2 className="animate-spin" aria-hidden />}
-      {children}
+      {pending && pendingLabel ? <span aria-live="polite">{pendingLabel}</span> : children}
     </Button>
   );
 }

@@ -1,5 +1,6 @@
 import { CategoryIconBadge } from "@/components/category-icon";
 import { FlowIcon } from "@/components/flow-icon";
+import { RemovableRow } from "@/components/removable-row";
 import {
   Table,
   TableBody,
@@ -46,7 +47,7 @@ export async function TransactionsTable({
         </TableHeader>
         <TableBody>
           {rows.map((row) => (
-            <TableRow key={row.id}>
+            <RemovableRow key={row.id}>
               <TableCell className="text-muted-foreground hidden tabular-nums sm:table-cell">
                 {formatDate(row.date, locale)}
               </TableCell>
@@ -73,7 +74,8 @@ export async function TransactionsTable({
               </TableCell>
               <TableCell className="text-right font-medium tabular-nums">
                 <span className="inline-flex items-center gap-1.5">
-                  <FlowIcon type={row.categoryType} />
+                  {/* The sign says it already; phones skip the arrow to leave the note room */}
+                  <FlowIcon type={row.categoryType} className="hidden sm:block" />
                   {formatMoney(row.categoryType === "INCOME" ? row.amount : -row.amount, currency, {
                     signDisplay: "always",
                     locale,
@@ -88,7 +90,7 @@ export async function TransactionsTable({
                   currency={currency}
                 />
               </TableCell>
-            </TableRow>
+            </RemovableRow>
           ))}
         </TableBody>
       </Table>

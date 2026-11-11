@@ -1,5 +1,6 @@
 import { Plus, Target } from "lucide-react";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { BudgetDialog } from "@/components/budgets/budget-dialog";
 import { BudgetList } from "@/components/budgets/budget-list";
@@ -11,9 +12,10 @@ import { MonthPicker } from "@/components/month-picker";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { localePath } from "@/i18n/config";
 import { getI18n } from "@/i18n/server";
 import { getCurrentUser } from "@/lib/auth";
-import { currentMonth, formatMonth, isValidMonth, shiftMonth } from "@/lib/dates";
+import { currentMonth, formatMonth, isMonthInRange, shiftMonth } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { budgetStatus } from "@/lib/stats";
 import { getBudgetsWithSpending } from "@/server/queries/budgets";
@@ -37,7 +39,11 @@ async function Budgets({ searchParams }: Pick<PageProps<"/[lang]/budgets">, "sea
   const user = await getCurrentUser();
   const { locale, t } = await getI18n();
   const { month: monthParam } = await searchParams;
-  const month = isValidMonth(monthParam) ? monthParam : currentMonth();
+  // A wrong or far-off ?month= would otherwise quietly show this month instead
+  if (monthParam !== undefined && !isMonthInRange(monthParam)) {
+    redirect(localePath(locale, "/budgets"));
+  }
+  const month = monthParam ?? currentMonth();
   const previousMonth = shiftMonth(month, -1);
 
   const [budgets, previousBudgets, categories, spending] = await Promise.all([
@@ -60,7 +66,7 @@ async function Budgets({ searchParams }: Pick<PageProps<"/[lang]/budgets">, "sea
   const monthName = formatMonth(month, "long", locale);
 
   const addButton = (
-    <BudgetDialog month={month} categories={unbudgetedCategories}>
+    <BudgetDialog month={month} categories={unbudgetedCategories} currency={user.currency}>
       <Plus aria-hidden />
       {t("budgets.add")}
     </BudgetDialog>
@@ -150,6 +156,7 @@ async function Budgets({ searchParams }: Pick<PageProps<"/[lang]/budgets">, "sea
                   month={month}
                   categories={[]}
                   category={{ id: row.id, name: row.name }}
+                  currency={user.currency}
                   triggerProps={{ variant: "outline", size: "sm" }}
                 >
                   {t("budgets.setBudget")}

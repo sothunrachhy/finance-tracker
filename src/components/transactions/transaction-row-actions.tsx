@@ -29,6 +29,7 @@ export function TransactionRowActions({
       <TransactionDialog
         categories={categories}
         today={today}
+        currency={currency}
         transaction={transaction}
         triggerProps={{
           variant: "ghost",

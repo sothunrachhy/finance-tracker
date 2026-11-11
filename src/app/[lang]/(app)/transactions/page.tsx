@@ -1,5 +1,6 @@
 import { ArrowLeftRight, Download, Plus } from "lucide-react";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { MonthPicker } from "@/components/month-picker";
@@ -40,10 +41,23 @@ async function Transactions({
   const money = (cents: number) => formatMoney(cents, user.currency, { locale });
   const params = await searchParams;
   const filters = parseTransactionFilters(params);
+  const basePath = localePath(locale, "/transactions");
+  // A wrong or far-off ?month= would otherwise quietly show this month instead
+  if (params.month !== undefined && params.month !== filters.month) {
+    redirect(withParams(basePath, params, { month: null }));
+  }
   const [categories, result] = await Promise.all([
     getCategories(user.id, locale),
     getTransactions(user.id, filters, locale),
   ]);
+  // Past the last page (an old link, or rows deleted since): go to the last page
+  if (filters.page > result.pageCount) {
+    redirect(
+      withParams(basePath, params, {
+        page: result.pageCount > 1 ? String(result.pageCount) : null,
+      }),
+    );
+  }
   const today = todayISO();
   const hasFilters = filters.type !== "ALL" || filters.categoryId || filters.q;
 
@@ -66,7 +80,7 @@ async function Transactions({
               <Download aria-hidden />
               {t("transactions.export")}
             </a>
-            <TransactionDialog categories={categories} today={today}>
+            <TransactionDialog categories={categories} today={today} currency={user.currency}>
               <Plus aria-hidden />
               {t("transactions.add")}
             </TransactionDialog>
@@ -91,7 +105,7 @@ async function Transactions({
             <Pagination
               page={filters.page}
               pageCount={result.pageCount}
-              basePath={localePath(locale, "/transactions")}
+              basePath={basePath}
               searchParams={params}
             />
           </>
@@ -104,7 +118,7 @@ async function Transactions({
             }
             action={
               !hasFilters && (
-                <TransactionDialog categories={categories} today={today}>
+                <TransactionDialog categories={categories} today={today} currency={user.currency}>
                   <Plus aria-hidden />
                   {t("transactions.add")}
                 </TransactionDialog>
@@ -115,6 +129,24 @@ async function Transactions({
       </div>
     </>
   );
+}
+
+/** `base` with the current query string, after applying `changes` (null removes a key). */
+function withParams(
+  base: string,
+  params: Record<string, string | string[] | undefined>,
+  changes: Record<string, string | null>,
+): string {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value === "string") query.set(key, value);
+  }
+  for (const [key, value] of Object.entries(changes)) {
+    if (value === null) query.delete(key);
+    else query.set(key, value);
+  }
+  const search = query.toString();
+  return search ? `${base}?${search}` : base;
 }
 
 /** The export link carries the same filters, so the file matches the table. */

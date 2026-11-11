@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/client";
-import { currentMonth, formatMonth, shiftMonth } from "@/lib/dates";
+import { currentMonth, formatMonth, monthBounds, shiftMonth } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 /** Prev / next month switcher that stores the month in the URL (?month=YYYY-MM). */
@@ -16,6 +16,8 @@ export function MonthPicker({ month, allowAll = false }: { month: string; allowA
   const { locale, t } = useI18n();
   const [pending, startTransition] = useTransition();
   const isAll = month === "all";
+  // Same window as transaction dates: nothing to see before 2000 or over a year ahead
+  const { min, max } = monthBounds();
 
   function go(next: string) {
     const params = new URLSearchParams(searchParams);
@@ -36,7 +38,7 @@ export function MonthPicker({ month, allowAll = false }: { month: string; allowA
         variant="ghost"
         size="icon"
         className="rounded-full"
-        disabled={isAll}
+        disabled={isAll || month <= min}
         onClick={() => go(shiftMonth(month, -1))}
         aria-label={t("monthPicker.previous")}
       >
@@ -49,7 +51,7 @@ export function MonthPicker({ month, allowAll = false }: { month: string; allowA
         variant="ghost"
         size="icon"
         className="rounded-full"
-        disabled={isAll}
+        disabled={isAll || month >= max}
         onClick={() => go(shiftMonth(month, 1))}
         aria-label={t("monthPicker.next")}
       >

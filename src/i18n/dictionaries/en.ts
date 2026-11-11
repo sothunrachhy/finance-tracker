@@ -64,6 +64,7 @@ const en = {
     screenshotAlt: "The Finance Tracker dashboard with monthly totals and charts",
     getStarted: "Get started free",
     tryDemo: "Try the demo",
+    demoLoading: "Setting up sample data…",
     freeNote: "*100% free*, no credit card needed",
     features: {
       label: "Key features",
@@ -405,6 +406,7 @@ const en = {
     status: {
       ok: "On track",
       warning: "Near limit",
+      limit: "At limit",
       over: "Over budget",
     },
   },
@@ -483,6 +485,9 @@ const en = {
     amountFormat: "Enter a number, like 3000 or 12.50",
     amountPositive: "Amount must be greater than 0",
     amountTooLarge: "The largest amount allowed is 10,000,000.00",
+    amountTooLargeRiel: "The largest amount allowed is 1,000,000,000៛",
+    amountFormatWhole: "Enter a whole number, like 40000",
+    amountWhole: "Riel amounts can't have decimals",
     chooseCategory: "Choose a category",
     date: "Enter a valid date",
     dateTooEarly: "Use a date from the year 2000 onwards",

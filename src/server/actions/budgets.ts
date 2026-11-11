@@ -4,7 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { refresh } from "next/cache";
 import { budgets, categories } from "@/db/schema";
 import { getRequestI18n } from "@/i18n/request";
-import { requireUserId } from "@/lib/auth";
+import { requireUser, requireUserId } from "@/lib/auth";
 import { isValidMonth, shiftMonth } from "@/lib/dates";
 import { db } from "@/lib/db";
 import { fieldErrors, type FormState, formValues } from "@/lib/form-state";
@@ -13,11 +13,11 @@ import type { ActionResult } from "@/server/actions/transactions";
 
 /** Creates or updates the budget for one category in one month. */
 export async function saveBudget(_prev: FormState, formData: FormData): Promise<FormState> {
-  const userId = await requireUserId();
+  const { id: userId, currency } = await requireUser();
   const { t } = await getRequestI18n();
   const values = formValues(formData, ["categoryId", "month", "amount"]);
 
-  const parsed = budgetSchema.safeParse(values);
+  const parsed = budgetSchema(currency).safeParse(values);
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error, t), values };
   const { categoryId, month, amount } = parsed.data;
 

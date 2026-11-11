@@ -1,4 +1,5 @@
 import { ArrowRight, Check, Plus } from "lucide-react";
+import type { Metadata } from "next";
 import { cacheLife } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
@@ -87,6 +88,20 @@ const ABOUT = [
 ] as const;
 
 const FAQ_ITEMS = ["free", "demo", "security", "export", "delete"] as const;
+
+// Tells search engines the English and Khmer pages are translations of each other
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale } = await getI18n();
+  return {
+    alternates: {
+      canonical: localePath(locale, "/"),
+      languages: {
+        ...Object.fromEntries(LOCALES.map((option) => [option, localePath(option, "/")])),
+        "x-default": localePath("en", "/"),
+      },
+    },
+  };
+}
 
 export default async function Home() {
   const { locale, t } = await getI18n();

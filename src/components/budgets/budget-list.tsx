@@ -43,6 +43,7 @@ export function BudgetList({
                 categories={[]}
                 category={category}
                 amount={budget.amount}
+                currency={currency}
                 triggerProps={{
                   variant: "ghost",
                   size: "icon-sm",

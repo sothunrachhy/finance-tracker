@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleAlert, CircleCheck, TriangleAlert } from "lucide-react";
+import { CircleAlert, CircleCheck, CircleMinus, TriangleAlert } from "lucide-react";
 import { useI18n } from "@/i18n/client";
 import { type BudgetStatus, formatPercent } from "@/lib/stats";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 const STATUS = {
   ok: { icon: CircleCheck, iconClass: "text-status-good", fill: "bg-status-good" },
   warning: { icon: TriangleAlert, iconClass: "text-status-warning", fill: "bg-status-warning" },
+  limit: { icon: CircleMinus, iconClass: "text-status-warning", fill: "bg-status-warning" },
   over: { icon: CircleAlert, iconClass: "text-status-critical", fill: "bg-status-critical" },
 } as const;
 

@@ -17,3 +17,16 @@ export function appUrl(): string {
   }
   return "http://localhost:3000";
 }
+
+/**
+ * The same address for page metadata, the sitemap and robots.txt. Those are built
+ * during `next build` too, so a missing setting falls back to localhost instead of
+ * failing the build.
+ */
+export function siteUrl(): string {
+  try {
+    return appUrl();
+  } catch {
+    return "http://localhost:3000";
+  }
+}

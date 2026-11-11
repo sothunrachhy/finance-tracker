@@ -49,6 +49,12 @@ describe("parseTransactionFilters", () => {
     expect(filters.page).toBe(1);
   });
 
+  it("ignores months too far from today to have transactions", () => {
+    expect(parseTransactionFilters({ month: "2028-01" }, now).month).toBe("2026-11");
+    expect(parseTransactionFilters({ month: "1999-12" }, now).month).toBe("2026-11");
+    expect(parseTransactionFilters({ month: "2027-11" }, now).month).toBe("2027-11");
+  });
+
   it("uses the first value when a param repeats", () => {
     expect(parseTransactionFilters({ type: ["expense", "income"] }, now).type).toBe("EXPENSE");
   });

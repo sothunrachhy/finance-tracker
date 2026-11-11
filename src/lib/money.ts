@@ -1,6 +1,6 @@
-// Amounts are stored as integers in minor units (cents). Every supported currency
-// uses exactly 2 decimal places, so 1 major unit is always 100 minor units and a
-// stored amount keeps its meaning if the user switches display currency.
+// Amounts are stored as integers in minor units (cents). Every currency is stored with
+// 2 decimal places, so 1 major unit is always 100 minor units and a stored amount
+// keeps its number if the user switches display currency. Riel is shown without them.
 import type { Locale } from "@/i18n/config";
 
 export const CURRENCY_CODES = [
@@ -44,24 +44,42 @@ export function currencyName(code: string, locale: Locale = "en"): string {
   return new Intl.DisplayNames("en-US", { type: "currency" }).of(code) ?? code;
 }
 
-// Largest single amount we accept: 10,000,000.00. Keeps sums far from int overflow.
-export const MAX_AMOUNT_CENTS = 1_000_000_000;
+/**
+ * Decimal places shown and accepted for a currency. Riel has no coins in use, so it's
+ * entered and shown in whole riel (still stored as minor units, ×100, like the rest).
+ */
+export function currencyDecimals(currency: string): 0 | 2 {
+  return currency === "KHR" ? 0 : 2;
+}
+
+// Largest single amount we accept, in major units: 10,000,000.00 in most currencies.
+// Riel is worth far less (about 4,000 to the dollar), so it gets 1,000,000,000៛.
+const MAX_AMOUNT: Partial<Record<string, number>> = { KHR: 1_000_000_000 };
+const DEFAULT_MAX_AMOUNT = 10_000_000;
+
+/** The largest single amount for a currency, in minor units. */
+export function maxAmountCents(currency: string): number {
+  return (MAX_AMOUNT[currency] ?? DEFAULT_MAX_AMOUNT) * 100;
+}
 
 /**
  * Parses user input like "12", "12.5", "1,234.56" into cents without ever going
  * through floating point. Returns null for anything that isn't a valid amount.
+ * With `decimals` 0 (riel) only whole numbers are accepted.
  */
-export function parseAmountToCents(input: string): number | null {
+export function parseAmountToCents(input: string, decimals: 0 | 2 = 2): number | null {
   const value = input.trim().replace(/,/g, "");
-  if (!/^\d+(\.\d{1,2})?$/.test(value)) return null;
+  const pattern = decimals === 0 ? /^\d+$/ : /^\d+(\.\d{1,2})?$/;
+  if (!pattern.test(value)) return null;
 
   const [whole, fraction = ""] = value.split(".");
   const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
   return Number.isSafeInteger(cents) ? cents : null;
 }
 
-/** Formats cents as a plain decimal string for form inputs, e.g. 1250 -> "12.50". */
-export function centsToInput(cents: number): string {
+/** Formats cents as a plain number for form inputs: 1250 -> "12.50" (or "13" for riel). */
+export function centsToInput(cents: number, decimals: 0 | 2 = 2): string {
+  if (decimals === 0) return String(Math.round(cents / 100));
   const whole = Math.floor(cents / 100);
   const fraction = String(cents % 100).padStart(2, "0");
   return `${whole}.${fraction}`;
@@ -78,16 +96,15 @@ export function formatMoney(
   } = {},
 ): string {
   const signDisplay = options.signDisplay ?? "auto";
+  const decimals = currencyDecimals(currency);
+  const digits = options.compact
+    ? ({ notation: "compact", maximumFractionDigits: 1 } as const)
+    : { minimumFractionDigits: decimals, maximumFractionDigits: decimals };
 
   // Khmer puts the symbol after the number ("1,234.56$", compact "4.5K$"). Built by
   // hand from the English number format, see above.
   if (options.locale === "km") {
-    const number = new Intl.NumberFormat("en-US", {
-      signDisplay,
-      ...(options.compact
-        ? { notation: "compact", maximumFractionDigits: 1 }
-        : { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-    }).format(cents / 100);
+    const number = new Intl.NumberFormat("en-US", { signDisplay, ...digits }).format(cents / 100);
     return `${number}${currencySymbol(currency)}`;
   }
 
@@ -96,7 +113,7 @@ export function formatMoney(
     style: "currency",
     currency,
     signDisplay,
-    ...(options.compact && { notation: "compact", maximumFractionDigits: 1 }),
+    ...digits,
   }).format(cents / 100);
 }
 

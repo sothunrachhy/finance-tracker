@@ -15,3 +15,11 @@ export function categoryName(locale: Locale): SQL<string> {
   );
   return sql<string>`coalesce(case ${categories.defaultKey} ${sql.join(cases, sql` `)} end, ${categories.name})`;
 }
+
+/**
+ * Sorts names A–Z ignoring case, so a user's "groceries" sits next to "Groceries"
+ * instead of after every capitalized name (Postgres compares bytes by default).
+ */
+export function alphabetical(name: SQL<string>): SQL[] {
+  return [sql`lower(${name})`, name];
+}

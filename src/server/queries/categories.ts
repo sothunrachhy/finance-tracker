@@ -1,9 +1,9 @@
 import "server-only";
-import { asc, count, eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { categories, transactions } from "@/db/schema";
 import type { Locale } from "@/i18n/config";
 import { db } from "@/lib/db";
-import { categoryName } from "./category-name";
+import { alphabetical, categoryName } from "./category-name";
 
 export type CategoryOption = {
   id: string;
@@ -25,7 +25,7 @@ export async function getCategories(userId: string, locale: Locale): Promise<Cat
     })
     .from(categories)
     .where(eq(categories.userId, userId))
-    .orderBy(asc(name));
+    .orderBy(...alphabetical(name));
 }
 
 export type CategoryWithUsage = CategoryOption & { transactionCount: number };
@@ -48,5 +48,5 @@ export async function getCategoriesWithUsage(
     .leftJoin(transactions, eq(transactions.categoryId, categories.id))
     .where(eq(categories.userId, userId))
     .groupBy(categories.id)
-    .orderBy(asc(name));
+    .orderBy(...alphabetical(name));
 }

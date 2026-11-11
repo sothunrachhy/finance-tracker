@@ -1,4 +1,4 @@
-import { currentMonth, isValidMonth } from "@/lib/dates";
+import { currentMonth, isMonthInRange } from "@/lib/dates";
 
 // The transactions page keeps its filters in the URL, so a filtered view can be
 // bookmarked, shared, and survives a refresh.
@@ -35,7 +35,7 @@ export function parseTransactionFilters(
   const page = Number(first(params.page));
 
   return {
-    month: month === "all" || isValidMonth(month) ? month : currentMonth(now),
+    month: month === "all" || isMonthInRange(month, now) ? month : currentMonth(now),
     type: type === "INCOME" || type === "EXPENSE" ? type : "ALL",
     categoryId: categoryId && UUID_PATTERN.test(categoryId) ? categoryId : null,
     q: (first(params.q) ?? "").trim().slice(0, 100),

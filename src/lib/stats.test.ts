@@ -7,7 +7,8 @@ describe("budgetStatus", () => {
     [79_99, 100_00, "ok"],
     [80_00, 100_00, "warning"],
     [99_99, 100_00, "warning"],
-    [100_00, 100_00, "over"],
+    [100_00, 100_00, "limit"],
+    [100_01, 100_00, "over"],
     [150_00, 100_00, "over"],
   ])("spent %i of %i is %s", (spent, limit, expected) => {
     expect(budgetStatus(spent, limit)).toBe(expected);

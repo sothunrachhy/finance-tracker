@@ -20,7 +20,11 @@ export async function GET(request: NextRequest) {
 
   const { locale, t } = await getRequestI18n();
   const requested = request.nextUrl.searchParams.get("month");
-  const month = isValidMonth(requested) ? requested : currentMonth();
+  // A wrong month would otherwise quietly give a statement for a different month
+  if (requested !== null && !isValidMonth(requested)) {
+    return new Response("Invalid month: use YYYY-MM", { status: 400 });
+  }
+  const month = requested ?? currentMonth();
   const filters = parseTransactionFilters({ month });
 
   const [[user], summary, spending, budgets, rows] = await Promise.all([
@@ -44,7 +48,7 @@ export async function GET(request: NextRequest) {
       .from(transactions)
       .innerJoin(categories, eq(transactions.categoryId, categories.id))
       .where(transactionFilterConditions(userId, filters, locale))
-      .orderBy(desc(transactions.date), desc(transactions.createdAt)),
+      .orderBy(desc(transactions.date), desc(transactions.createdAt), desc(transactions.id)),
   ]);
   if (!user) return new Response("Unauthorized", { status: 401 });
 

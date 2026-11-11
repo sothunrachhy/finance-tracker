@@ -17,12 +17,15 @@ import { useI18n } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { logout } from "@/server/actions/auth";
 
+/** "Sokha Chan" -> "SC". Skips symbols, so "<Sokha" gives "S", not "<". */
 function initials(name: string): string {
   return name
     .split(/\s+/)
+    .map((part) => part.match(/[\p{L}\p{N}]/u)?.[0] ?? "")
+    .filter(Boolean)
     .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
+    .join("")
+    .toUpperCase();
 }
 
 function Avatar({ name, className }: { name: string; className?: string }) {

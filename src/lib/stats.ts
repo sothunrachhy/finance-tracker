@@ -6,14 +6,19 @@ export function savingsRate(income: number, expenses: number): number | null {
   return (income - expenses) / income;
 }
 
-export type BudgetStatus = "ok" | "warning" | "over";
+export type BudgetStatus = "ok" | "warning" | "limit" | "over";
 
 export const BUDGET_WARNING_RATIO = 0.8;
 
-/** Green below 80% of the limit, warning from 80%, over once the limit is reached. */
+/**
+ * Green below 80% of the limit, warning from 80%, "limit" when exactly all of it is
+ * spent (nothing left, but not overspent either), over once spending passes it.
+ */
 export function budgetStatus(spent: number, limit: number): BudgetStatus {
-  const ratio = limit > 0 ? spent / limit : 1;
-  if (ratio >= 1) return "over";
+  if (limit <= 0) return "over";
+  if (spent > limit) return "over";
+  if (spent === limit) return "limit";
+  const ratio = spent / limit;
   if (ratio >= BUDGET_WARNING_RATIO) return "warning";
   return "ok";
 }

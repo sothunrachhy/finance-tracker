@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, X } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,11 @@ export function TransactionFilters({
   // (clear filters, then type) build on this ref instead of a stale URL.
   const latestParams = useRef(searchParams.toString());
   useEffect(() => {
+    // A search from the header (Ctrl K) changes ?q= without going through this box:
+    // show that search here too. Our own updates already match, so typing isn't undone.
+    const urlQuery = searchParams.get("q") ?? "";
+    const ownQuery = new URLSearchParams(latestParams.current).get("q") ?? "";
+    if (urlQuery !== ownQuery) setQuery(urlQuery);
     latestParams.current = searchParams.toString();
   }, [searchParams]);
 
@@ -54,6 +59,8 @@ export function TransactionFilters({
   const visibleCategories =
     filters.type === "ALL" ? categories : categories.filter((c) => c.type === filters.type);
   const hasFilters = filters.type !== "ALL" || filters.categoryId || filters.q;
+  // Waiting for the typing pause, or for the results to come back
+  const searching = query.trim() !== filters.q || pending;
 
   return (
     <div
@@ -64,10 +71,17 @@ export function TransactionFilters({
       aria-busy={pending}
     >
       <div className="relative w-full sm:w-64">
-        <Search
-          className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
-          aria-hidden
-        />
+        {searching ? (
+          <Loader2
+            className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 animate-spin"
+            aria-hidden
+          />
+        ) : (
+          <Search
+            className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
+            aria-hidden
+          />
+        )}
         <Input
           type="search"
           placeholder={t("transactions.searchPlaceholder")}

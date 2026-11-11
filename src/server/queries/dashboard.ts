@@ -92,7 +92,7 @@ export async function getRecentTransactions(
     .from(transactions)
     .innerJoin(categories, eq(transactions.categoryId, categories.id))
     .where(inRange(userId, start, end))
-    .orderBy(desc(transactions.date), desc(transactions.createdAt))
+    .orderBy(desc(transactions.date), desc(transactions.createdAt), desc(transactions.id))
     .limit(limit);
   return rows as TransactionRow[];
 }

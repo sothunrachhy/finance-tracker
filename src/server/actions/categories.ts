@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne, or, sql } from "drizzle-orm";
 import { refresh } from "next/cache";
 import { categories } from "@/db/schema";
 import { getRequestI18n } from "@/i18n/request";
@@ -10,6 +10,8 @@ import { db } from "@/lib/db";
 import { isForeignKeyViolation, isUniqueViolation } from "@/lib/db-errors";
 import { fieldErrors, type FormState, formValues } from "@/lib/form-state";
 import { categorySchema, idSchema } from "@/lib/validation";
+import { categoryName } from "@/server/queries/category-name";
+import type { Locale } from "@/i18n/config";
 import type { ActionResult } from "@/server/actions/transactions";
 
 const FIELDS = ["name", "type", "color", "icon"] as const;
@@ -23,11 +25,18 @@ export async function saveCategory(_prev: FormState, formData: FormData): Promis
   const parsed = categorySchema.safeParse(values);
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error, t), values };
 
-  try {
-    if (id) {
-      const categoryId = idSchema.safeParse(id);
-      if (!categoryId.success) return { message: t("messages.categoryNotFound"), values };
+  const categoryId = id ? idSchema.safeParse(id) : null;
+  if (categoryId && !categoryId.success) {
+    return { message: t("messages.categoryNotFound"), values };
+  }
 
+  // The unique index compares exact bytes, so "groceries" would slip past "Groceries"
+  if (await nameTaken(userId, parsed.data, locale, categoryId?.data)) {
+    return { fieldErrors: { name: [t("messages.categoryNameTaken")] }, values };
+  }
+
+  try {
+    if (categoryId) {
       const where = and(eq(categories.id, categoryId.data), eq(categories.userId, userId));
       const existing = await db.query.categories.findFirst({
         where,
@@ -85,4 +94,33 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
 
   refresh();
   return { ok: true, message: t("messages.categoryDeleted") };
+}
+
+/**
+ * Whether another category of the same type already has this name, ignoring case.
+ * Checks the name as stored and as shown (starter categories follow the language).
+ */
+async function nameTaken(
+  userId: string,
+  { name, type }: { name: string; type: "INCOME" | "EXPENSE" },
+  locale: Locale,
+  exceptId?: string,
+): Promise<boolean> {
+  const lowered = name.toLowerCase();
+  const [match] = await db
+    .select({ id: categories.id })
+    .from(categories)
+    .where(
+      and(
+        eq(categories.userId, userId),
+        eq(categories.type, type),
+        exceptId ? ne(categories.id, exceptId) : undefined,
+        or(
+          sql`lower(${categories.name}) = ${lowered}`,
+          sql`lower(${categoryName(locale)}) = ${lowered}`,
+        ),
+      ),
+    )
+    .limit(1);
+  return match !== undefined;
 }

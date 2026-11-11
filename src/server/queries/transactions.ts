@@ -75,7 +75,7 @@ export async function getTransactions(userId: string, filters: TransactionFilter
       .from(transactions)
       .innerJoin(categories, eq(transactions.categoryId, categories.id))
       .where(where)
-      .orderBy(desc(transactions.date), desc(transactions.createdAt))
+      .orderBy(desc(transactions.date), desc(transactions.createdAt), desc(transactions.id))
       .limit(PAGE_SIZE)
       .offset((filters.page - 1) * PAGE_SIZE),
     db

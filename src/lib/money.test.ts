@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { centsToInput, currencyName, formatMoney, parseAmountToCents } from "./money";
+import {
+  centsToInput,
+  currencyDecimals,
+  currencyName,
+  formatMoney,
+  maxAmountCents,
+  parseAmountToCents,
+} from "./money";
 
 describe("parseAmountToCents", () => {
   it.each([
@@ -22,6 +29,23 @@ describe("parseAmountToCents", () => {
 
   it.each(["", "abc", "12.345", "-5", "1e3", ".5", "12.", "1.2.3"])("rejects %j", (input) => {
     expect(parseAmountToCents(input)).toBeNull();
+  });
+});
+
+describe("riel", () => {
+  it("is entered and shown in whole numbers", () => {
+    expect(parseAmountToCents("40,000", 0)).toBe(4_000_000);
+    expect(parseAmountToCents("40000.50", 0)).toBeNull();
+    expect(centsToInput(4_000_000, 0)).toBe("40000");
+    expect(formatMoney(420_000, "KHR", { locale: "km" })).toBe("4,200៛");
+    expect(formatMoney(420_000, "KHR")).toBe("KHR 4,200");
+  });
+
+  it("allows bigger amounts than other currencies", () => {
+    expect(maxAmountCents("USD")).toBe(1_000_000_000);
+    expect(maxAmountCents("KHR")).toBe(100_000_000_000);
+    expect(currencyDecimals("KHR")).toBe(0);
+    expect(currencyDecimals("USD")).toBe(2);
   });
 });
 
@@ -56,7 +80,7 @@ describe("formatMoney", () => {
   it("formats Khmer with the symbol after the number", () => {
     expect(formatMoney(123456, "USD", { locale: "km" })).toBe("1,234.56$");
     expect(formatMoney(-1250, "USD", { locale: "km", signDisplay: "always" })).toBe("-12.50$");
-    expect(formatMoney(4000000, "KHR", { locale: "km" })).toBe("40,000.00៛");
+    expect(formatMoney(4000000, "KHR", { locale: "km" })).toBe("40,000៛");
     expect(formatMoney(300000, "USD", { locale: "km", compact: true })).toBe("3K$");
   });
 

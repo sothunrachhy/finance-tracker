@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useRowRemoval } from "@/components/removable-row";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/client";
 import type { ActionResult } from "@/server/actions/transactions";
@@ -40,13 +41,22 @@ export function ConfirmDeleteButton({
   const [pending, startTransition] = useTransition();
   const { t } = useI18n();
 
+  const hideRow = useRowRemoval();
+
   function handleConfirm() {
+    // In a table row: take the row away now and put it back only if the delete fails,
+    // instead of leaving it on screen until the server has sent the new list
+    if (hideRow) {
+      setOpen(false);
+      hideRow(true);
+    }
     startTransition(async () => {
       const result = await onConfirm();
       if (result.ok) {
         toast.success(result.message);
         setOpen(false);
       } else {
+        hideRow?.(false);
         toast.error(result.message);
       }
     });

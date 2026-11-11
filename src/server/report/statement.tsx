@@ -64,6 +64,7 @@ const SERIES = [
 const STATUS_COLOR: Record<BudgetStatus, string> = {
   ok: "#0ca30c",
   warning: "#b77900",
+  limit: "#b77900",
   over: "#d03b3b",
 };
 

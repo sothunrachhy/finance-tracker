@@ -1,6 +1,7 @@
 import { ArrowRight, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { type ReactNode, Suspense } from "react";
 import { BudgetMeter, BudgetStatusLabel } from "@/components/budgets/budget-status";
 import { CategoryIconBadge } from "@/components/category-icon";
@@ -31,7 +32,7 @@ import { getCurrentUser } from "@/lib/auth";
 import {
   currentMonth,
   formatMonth,
-  isValidMonth,
+  isMonthInRange,
   recentMonths,
   shiftMonth,
   todayISO,
@@ -65,7 +66,11 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/[lang]/dashboard">, 
   const user = await getCurrentUser();
   const { locale, t } = await getI18n();
   const { month: monthParam } = await searchParams;
-  const month = isValidMonth(monthParam) ? monthParam : currentMonth();
+  // A wrong or far-off ?month= would otherwise quietly show this month instead
+  if (monthParam !== undefined && !isMonthInRange(monthParam)) {
+    redirect(localePath(locale, "/dashboard"));
+  }
+  const month = monthParam ?? currentMonth();
   const previousMonth = shiftMonth(month, -1);
 
   const [summary, previous, spending, trend, recent, budgets, categories] = await Promise.all([
@@ -138,6 +143,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/[lang]/dashboard">, 
           <TransactionDialog
             categories={categories}
             today={todayISO()}
+            currency={user.currency}
             triggerProps={{
               className:
                 "h-10 rounded-full bg-linear-to-r from-teal-800 to-emerald-700 px-4 font-semibold text-white shadow-md shadow-emerald-800/20 hover:brightness-110 dark:text-white",

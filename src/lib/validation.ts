@@ -7,7 +7,7 @@ import {
   MIN_TRANSACTION_DATE,
   maxTransactionDate,
 } from "@/lib/dates";
-import { CURRENCY_CODES, MAX_AMOUNT_CENTS, parseAmountToCents } from "@/lib/money";
+import { CURRENCY_CODES, currencyDecimals, maxAmountCents, parseAmountToCents } from "@/lib/money";
 
 // Shared validation rules for every Server Action. Error messages are translation
 // keys (e.g. "validation.email"); the action translates them into the user's
@@ -36,29 +36,40 @@ const name = z
   .min(1, msg("validation.nameRequired"))
   .max(50, msg("validation.nameTooLong"));
 
-/** Accepts "12.50" style input and outputs integer cents. */
-const amount = z
-  .string()
-  .transform((value, ctx) => {
-    const cents = parseAmountToCents(value);
-    if (cents === null) {
-      // A well-formed number only fails to parse when it's too big to store
-      const wellFormed = /^\s*\d[\d,]*(\.\d{1,2})?\s*$/.test(value);
-      ctx.addIssue({
-        code: "custom",
-        message: msg(wellFormed ? "validation.amountTooLarge" : "validation.amountFormat"),
-      });
-      return z.NEVER;
-    }
-    return cents;
-  })
-  .pipe(
-    z
-      .number()
-      .int()
-      .positive(msg("validation.amountPositive"))
-      .max(MAX_AMOUNT_CENTS, msg("validation.amountTooLarge")),
+/** Accepts "12.50" style input (whole numbers for riel) and outputs integer cents. */
+function amount(currency: string) {
+  const decimals = currencyDecimals(currency);
+  const tooLarge = msg(
+    currency === "KHR" ? "validation.amountTooLargeRiel" : "validation.amountTooLarge",
   );
+  return z
+    .string()
+    .transform((value, ctx) => {
+      const cents = parseAmountToCents(value, decimals);
+      if (cents === null) {
+        ctx.addIssue({ code: "custom", message: amountProblem(value, decimals, tooLarge) });
+        return z.NEVER;
+      }
+      return cents;
+    })
+    .pipe(
+      z
+        .number()
+        .int()
+        .positive(msg("validation.amountPositive"))
+        .max(maxAmountCents(currency), tooLarge),
+    );
+}
+
+/** Says why an amount didn't parse, as specifically as possible. */
+function amountProblem(value: string, decimals: 0 | 2, tooLarge: ValidationKey): ValidationKey {
+  const trimmed = value.trim();
+  if (/^-\s*\d/.test(trimmed)) return msg("validation.amountPositive");
+  if (decimals === 0 && /^\d[\d,]*\.\d*$/.test(trimmed)) return msg("validation.amountWhole");
+  // A well-formed number only fails to parse when it's too big to store
+  if (/^\d[\d,]*(\.\d{1,2})?$/.test(trimmed)) return tooLarge;
+  return msg(decimals === 0 ? "validation.amountFormatWhole" : "validation.amountFormat");
+}
 
 const id = z.uuid(msg("validation.invalidId"));
 
@@ -69,20 +80,23 @@ export const loginSchema = z.object({
   password: z.string().min(1, msg("validation.passwordRequired")),
 });
 
-export const transactionSchema = z.object({
-  categoryId: z.uuid(msg("validation.chooseCategory")),
-  amount,
-  date: z
-    .string()
-    .refine(isValidISODate, { message: msg("validation.date"), abort: true })
-    .refine((date) => date >= MIN_TRANSACTION_DATE, msg("validation.dateTooEarly"))
-    .refine((date) => date <= maxTransactionDate(), msg("validation.dateTooLate")),
-  note: z
-    .string()
-    .trim()
-    .max(200, msg("validation.noteTooLong"))
-    .transform((v) => v || null),
-});
+/** Amount limits and decimals depend on the user's currency. */
+export function transactionSchema(currency: string) {
+  return z.object({
+    categoryId: z.uuid(msg("validation.chooseCategory")),
+    amount: amount(currency),
+    date: z
+      .string()
+      .refine(isValidISODate, { message: msg("validation.date"), abort: true })
+      .refine((date) => date >= MIN_TRANSACTION_DATE, msg("validation.dateTooEarly"))
+      .refine((date) => date <= maxTransactionDate(), msg("validation.dateTooLate")),
+    note: z
+      .string()
+      .trim()
+      .max(200, msg("validation.noteTooLong"))
+      .transform((v) => v || null),
+  });
+}
 
 export const categorySchema = z.object({
   name: z
@@ -95,11 +109,13 @@ export const categorySchema = z.object({
   icon: z.enum(CATEGORY_ICON_NAMES, msg("validation.chooseIcon")),
 });
 
-export const budgetSchema = z.object({
-  categoryId: z.uuid(msg("validation.chooseCategory")),
-  month: z.string().refine(isValidMonth, msg("validation.invalidMonth")),
-  amount,
-});
+export function budgetSchema(currency: string) {
+  return z.object({
+    categoryId: z.uuid(msg("validation.chooseCategory")),
+    month: z.string().refine(isValidMonth, msg("validation.invalidMonth")),
+    amount: amount(currency),
+  });
+}
 
 export const profileSchema = z.object({
   name,

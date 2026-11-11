@@ -4,7 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { refresh } from "next/cache";
 import { categories, transactions } from "@/db/schema";
 import { getRequestI18n } from "@/i18n/request";
-import { requireUserId } from "@/lib/auth";
+import { requireUser, requireUserId } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fieldErrors, type FormState, formValues } from "@/lib/form-state";
 import { idSchema, transactionSchema } from "@/lib/validation";
@@ -14,12 +14,12 @@ const FIELDS = ["categoryId", "amount", "date", "note"] as const;
 export type ActionResult = { ok: boolean; message: string };
 
 export async function saveTransaction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const userId = await requireUserId();
+  const { id: userId, currency } = await requireUser();
   const { t } = await getRequestI18n();
   const values = formValues(formData, FIELDS);
   const id = formData.get("id");
 
-  const parsed = transactionSchema.safeParse(values);
+  const parsed = transactionSchema(currency).safeParse(values);
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error, t), values };
 
   // The category id comes from the browser, so make sure it belongs to this user.
